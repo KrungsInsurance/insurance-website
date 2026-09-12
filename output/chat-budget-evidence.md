@@ -1,0 +1,15 @@
+# Sourced annual budget choices
+
+Follow-up completed: explicit `ยังไม่กำหนดงบ` with null budget proceeds through mock search/card rendering in all7 categories and instructs Live to do likewise. Server refuses repeat budget question for that request and preserves null even if the model passes0. Numeric Chat search budgets now call shared `searchPlans({premiumPeriod:"year",maxPremium})`; default Browse behavior is unchanged because period filter is optional. Tool output includes `budgetBasis` with period/maxPremium/note; selected plans outside the filter remain distinguishable from matches. Tests prove single-trip travel is excluded from annual budget matching yet available when skipped. Chat+discovery31 tests, typecheck and targeted lint all passed; no rebuild or Live calls performed for this follow-up.
+
+`getBudgetChoices(category)` in existing catalog domain reads canonical Price and matching SourceEvidence. It returns maximum4 actual published annual THB amounts. Unknown/quote-only, trip and single-payment prices, zero/nonfinite amounts, and missing price evidence are excluded. No multiplying daily/trip amounts, rounding premiums, interpolating thresholds or importing user illustrative numbers.
+
+If more than4 distinct eligible amounts exist, select evenly spaced sorted indices including minimum and maximum. Rounding applies only to array index, never monetary value. Fewer known amounts remain fewer buttons; liability is empty and offers skip rather than invented ranges. Travel only has its explicitly annual travel-02 reference; single-trip premiums are excluded.
+
+These are **annual budget reference amounts, not actuarially comparable risk quotes**. Life examples have different gender/sum/payment conditions, retained in each choice's price.scenario and source disclosure. Example:69,000THB/year refers to published male35/sum100k/pay5years; it is not total lifetime premium and cannot imply other people qualify. Motor5,400/5,800 are published starting references with launch/current-quote caveat retained; no claim they are a binding current quote. Unknown expired CMI numeric advertising is excluded because canonical amount is null.
+
+UI always states these are conditional published annual references, labels each button example/starting/table, and provides source URLs/locators/full scenario in native details. All action targets minimum44px. `BudgetChoices` has no state/route dependency; accepts category (nullable), disabled, onChoose(number|null). Skip sends null, never0. No custom input added: existing choices and skip are the smallest requested interaction.
+
+ChatCard budget question now delegates to shared component; other card branches unchanged. Parent adapts ChatWidget null handling and reuses same component for standalone onboarding.
+
+Verified7 discovery tests, including all categories, exact decimals, life scenario retention, missing evidence, unknown/single/trip exclusion. Targeted lint clean. Typecheck currently waits only for parent-owned ChatWidget callback signature(number|null). No browser/server changes in this subtask.

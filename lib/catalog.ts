@@ -365,10 +365,10 @@ for(const seed of expandedSeeds){
  if(seed.id==="life-07")seed.extraSources=[{url:pruConditions,locator:"หน้า 1 / เงื่อนไขการรับประกัน ข้อ 1,3–8"}];
 }
 export const catalog:Plan[]=[...seeds,...expandedSeeds].map(buildPlan);
-export type SearchOptions={category?:Category;q?:string;maxPremium?:number;sort?:PlanSort};
-export function searchPlans({category="health",q="",maxPremium,sort="price-asc"}:SearchOptions={}):Plan[]{
+export type SearchOptions={category?:Category;q?:string;maxPremium?:number;premiumPeriod?:Plan["premiumPeriod"];sort?:PlanSort};
+export function searchPlans({category="health",q="",maxPremium,premiumPeriod,sort="price-asc"}:SearchOptions={}):Plan[]{
   const query=q.trim().toLocaleLowerCase("th-TH");const budget=Number.isFinite(maxPremium)&&(maxPremium??-1)>=0?maxPremium:undefined;
-  const plans=catalog.filter(p=>p.category===category&&(budget===undefined||(p.price.amountTHB!==null&&p.price.amountTHB<=budget))&&(!query||[p.name,p.insurer,...p.highlights].some(t=>t.toLocaleLowerCase("th-TH").includes(query))));
+  const plans=catalog.filter(p=>p.category===category&&(!premiumPeriod||p.price.period===premiumPeriod)&&(budget===undefined||(p.price.amountTHB!==null&&p.price.amountTHB<=budget))&&(!query||[p.name,p.insurer,...p.highlights].some(t=>t.toLocaleLowerCase("th-TH").includes(query))));
   return plans.sort((a,b)=>{if(sort==="name")return a.name.localeCompare(b.name,"th")||a.id.localeCompare(b.id);const x=a.price.amountTHB,y=b.price.amountTHB;if(x===null)return y===null?a.id.localeCompare(b.id):1;if(y===null)return -1;return (sort==="price-desc"?y-x:x-y)||a.id.localeCompare(b.id);});
 }
 export function getPlan(id:string):Plan|undefined{return catalog.find(plan=>plan.id===id);}

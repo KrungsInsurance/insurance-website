@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { getPlan, searchPlans } from "../lib/catalog.ts";
+import { getBudgetChoices } from "../lib/chat-budget.ts";
+import { categories } from "../lib/types.ts";
 
 test("discovery query trims and searches name, insurer, and highlights", () => {
   assert.deepEqual(searchPlans({ category: "health", q: "  axa ", sort: "price-asc" }).map((plan) => plan.id), ["health-01", "health-02"]);
@@ -43,4 +45,24 @@ test("CMI expired promotion is not silently treated as a current budget quote", 
   assert.ok(cmi.sources.some(s => s.url.endsWith("axacar-promotion")));
   assert.ok(searchPlans({category:"motor"}).some(p => p.id === cmi.id));
   assert.ok(!searchPlans({category:"motor",maxPremium:600}).some(p => p.id === cmi.id));
+});
+
+test("budget choices only select existing sourced annual amounts without synthetic thresholds",()=>{
+ for(const category of categories){
+  const choices=getBudgetChoices(category);assert.ok(choices.length<=4);assert.equal(new Set(choices.map(c=>c.amountTHB)).size,choices.length);
+  for(const choice of choices){assert.ok(choice.references.length>0);for(const ref of choice.references){const plan=getPlan(ref.planId)!;assert.equal(plan.category,category);assert.equal(plan.price.period,"year");assert.equal(choice.amountTHB,plan.price.amountTHB);assert.deepEqual(ref.price,plan.price);assert.ok(ref.sources.every(source=>plan.price.sourceIds.includes(source.id)));}}
+ }
+ assert.deepEqual(getBudgetChoices("life").map(c=>c.amountTHB),[19940,22170,69000]);
+ assert.match(getBudgetChoices("life").find(c=>c.amountTHB===69000)!.references[0].price.scenario!,/ชายอายุ 35.*100,000.*5 ปี/);
+ assert.ok(getBudgetChoices("health").some(c=>c.amountTHB===27696.5));
+});
+
+test("budget anchors exclude unknown, trip, single-payment and missing-evidence prices",()=>{
+ assert.deepEqual(getBudgetChoices(null),[]);assert.deepEqual(getBudgetChoices("liability"),[]);
+ assert.deepEqual(getBudgetChoices("travel").map(c=>c.references[0].planId),["travel-02"]);
+ const plan=getPlan("life-06")!;
+ assert.deepEqual(getBudgetChoices("life",[{...plan,price:{...plan.price,period:"single"}}]),[]);
+ assert.deepEqual(getBudgetChoices("life",[{...plan,price:{...plan.price,sourceIds:["missing"]}}]),[]);
+ assert.deepEqual(getBudgetChoices("life",[{...plan,price:{...plan.price,kind:"quote_only",amountTHB:null}}]),[]);
+ assert.deepEqual(getBudgetChoices("motor").flatMap(c=>c.references.map(r=>r.planId)).includes("motor-05"),false);
 });

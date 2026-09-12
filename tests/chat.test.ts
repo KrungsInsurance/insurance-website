@@ -199,3 +199,25 @@ test("lookup fallback delivers requested canonical field with consistent server 
  const result=await (await POST(request({messages:[{role:"user",content:"motor-01 ทรัพย์สินบุคคลภายนอกเท่าไร"}],context:{category:"motor",selectedPlanIds:["motor-01"],budgetTHB:null}}))).json() as CardReply;
  assert.deepEqual(result.cards,[{type:"plans",planIds:["motor-01"],fieldKeys:["thirdPartyProperty"]}]);assert.ok(!result.message.includes("ไม่ได้"));
 });
+
+test("explicit budget skip proceeds to mock plan cards across all seven categories",async()=>{
+ const labels={health:"สุขภาพ",motor:"รถยนต์",life:"ชีวิต",accident:"อุบัติเหตุ",travel:"เดินทาง",property:"ทรัพย์สิน",liability:"ความรับผิด"};
+ for(const [category,label] of Object.entries(labels)){
+  const response=await POST(request({messages:[{role:"user",content:`ยังไม่กำหนดงบ ขอเริ่มดูแผนประกัน${label} พร้อมการ์ดความคุ้มครองและเงื่อนไข`}],context:{category,selectedPlanIds:[],budgetTHB:null}},"?mode=mock"));
+  assert.equal(response.status,200);const body=await response.json() as CardReply;assert.equal(body.cards[0].type,"plans",category);assert.ok(body.cards.every(c=>c.type!=="question"||c.kind!=="budget"));
+ }
+});
+
+test("Chat annual budget excludes trip premiums using optional shared search period",async t=>{
+ configure(t);let count=0;let toolResult:{matches:{id:string}[];selectedOutsideFilter:{id:string}[];budgetBasis:{maxPremium:number|null;period:string|null}};
+ t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"travel",maxPremium:2000}),call_id:"annual-budget"}]});toolResult=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
+ const response=await POST(request({messages:[{role:"user",content:"งบอ้างอิง 2000 บาทต่อปี หาแผนเดินทาง"}],context:{category:"travel",selectedPlanIds:["travel-01"],budgetTHB:2000}}));
+ assert.equal(response.status,200);assert.deepEqual(toolResult!.matches.map(p=>p.id),["travel-02"]);assert.deepEqual(toolResult!.selectedOutsideFilter.map(p=>p.id),["travel-01"]);assert.equal(toolResult!.budgetBasis.period,"year");
+ const {searchPlans}=await import("../lib/catalog.ts");assert.ok(searchPlans({category:"travel",maxPremium:2000}).some(p=>p.id==="travel-01"));assert.deepEqual(searchPlans({category:"travel",maxPremium:2000,premiumPeriod:"year"}).map(p=>p.id),["travel-02"]);
+});
+
+test("explicit skip remains unbounded even if live model supplies zero budget",async t=>{
+ configure(t);let count=0;let toolResult:{matches:{id:string}[];budgetBasis:{maxPremium:number|null;period:string|null}};
+ t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"travel",maxPremium:0}),call_id:"skip"}]});toolResult=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
+ assert.equal((await POST(request({messages:[{role:"user",content:"ยังไม่กำหนดงบ ขอเริ่มดูแผนประกันเดินทาง พร้อมการ์ด"}],context:{category:"travel",selectedPlanIds:[],budgetTHB:null}}))).status,200);assert.equal(toolResult!.budgetBasis.maxPremium,null);assert.equal(toolResult!.budgetBasis.period,null);assert.ok(toolResult!.matches.some(p=>p.id==="travel-01"));
+});
