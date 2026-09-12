@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">ภาพประกอบแผนประกันตัวอย่าง</title>
+  <desc id="desc">พื้นหลังสีเทาอ่อนพร้อมสัญลักษณ์โล่สีน้ำเงิน</desc>
+  <rect width="1200" height="800" fill="#f5f5f7"/>
+  <circle cx="600" cy="400" r="170" fill="#e0e0e0"/>
+  <path d="M600 255 735 310v102c0 91-58 153-135 193-77-40-135-102-135-193V310l135-55Z" fill="#0066cc"/>
+  <path d="m550 404 35 35 75-85" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="28"/>
+</svg>

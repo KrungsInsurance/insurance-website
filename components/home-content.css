@@ -1,0 +1,8 @@
+.home-page .purchase-steps{padding:0;list-style:none;margin:32px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 48px}
+.purchase-steps li{display:flex;gap:20px;border-top:1px solid #e0e0e0;padding-top:24px}
+.purchase-steps .purchase-number{font-size:24px;line-height:1.4;color:#626267;font-variant-numeric:tabular-nums}
+.purchase-steps h3{font-size:21px;font-weight:600;line-height:1.5;margin:0 0 10px}
+.purchase-steps p{font-size:15px;line-height:1.8;margin:0}
+.purchase-steps a{min-height:44px;display:inline-flex;align-items:center}
+.home-page .home-promotions .promotion-image{height:180px}
+@media(max-width:640px){.home-page .purchase-steps{grid-template-columns:1fr;gap:24px}.purchase-steps h3{font-size:19px}.purchase-steps li{gap:16px}}

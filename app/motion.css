@@ -1,0 +1,26 @@
+/* Short, compositor-only motion. Content remains visible without animation support. */
+@keyframes surface-arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes panel-arrive{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes panel-leave{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(8px) scale(.985)}}
+@keyframes menu-arrive{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:no-preference){
+ .draft-hero h1,.catalog-intro header,.broker-page-heading,.broker-detail-heading{animation:surface-arrive 200ms ease-out both}
+ .home-page :is(.hero-action,.text-link),.browse-page :is(.action-primary,.action-secondary,.category-rail a),.broker-page :is(button,.broker-primary,.broker-secondary),.broker-lead-page :is(button,.broker-primary,.broker-secondary),.chat-workspace button,.chat-launch{transition:transform 160ms ease-out}
+ .home-page :is(.hero-action,.text-link):active,.browse-page :is(.action-primary,.action-secondary):active,.broker-page button:active,.broker-lead-page button:active,.chat-workspace button:active,.chat-launch:active{transform:scale(.98)}
+ .catalog-art img{transition:transform 200ms ease-out}
+ .catalog-card,.promotion-card{transition:transform 200ms ease-out}
+ .catalog-selection{animation:surface-arrive 180ms ease-out}
+ .chat-workspace[data-state="open"]{animation:panel-arrive 180ms ease-out}
+ .chat-workspace[data-state="closed"]{animation:panel-leave 140ms ease-out}
+ .chat-workspace .chat-message:last-child,.chat-workspace .summary-preview{animation:surface-arrive 180ms ease-out}
+ .term-help-panel[data-state="open"],.term-help-tooltip[data-state="delayed-open"],.plan-picker-menu[data-state="open"]{animation:menu-arrive 160ms ease-out}
+ .mobile-nav[open]>div{animation:menu-arrive 160ms ease-out}
+ @media(hover:hover) and (pointer:fine){
+  .catalog-card:hover,.promotion-card:hover{transform:translateY(-3px)}
+  .catalog-card:hover .catalog-art img{transform:scale(1.025)}
+  .category-rail a:hover{transform:translateY(-2px)}
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .home-page *,.browse-page *,.broker-page *,.broker-lead-page *,.chat-workspace,.chat-workspace *,.chat-launch,.term-help-panel,.plan-picker-menu{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}

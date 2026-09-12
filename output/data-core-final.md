@@ -1,0 +1,25 @@
+# Independent Core catalog review — 2026-09-12
+
+**Scoped PASS for the newly expanded retained-product Core mapping.** Reviewed the frozen catalog after its author confirmed completion. No concrete incorrect new amount, selected-tier substitution, or promotion-price substitution was reproduced. This is source/data review, not a fresh browser or build result and not certification of every policy clause.
+
+## Executed checks
+
+- Read research-v2 §3 and final Core addendum, categoryFields, all new coreCells and motor/travel loops, and the independent motor-travel-core-evidence.md mapping.
+- Executed a read-only Node import/invariant scan of the actual catalog: **25 records, 330 cells, 173 known, 134 unknown, 23 other states; 0 invariant failures**. Checked known non-null value+basis+source IDs; every referenced source resolved to URL+locator; unknown values stayed null; quote-only prices stayed null. Source presence alone does not establish factual validity.
+- Fresh targeted primary-source reads independently checked the high-risk facts below. Other new fields were cross-reviewed against the author's explicit locator/evidence decisions; not every source PDF was independently reopened in this final pass.
+
+## Category coverage and evidence
+
+| Category | Current scope | Independent outcome |
+|---|---|---|
+| Health | 5 records; 18 rows | Core bases separated; OPD caps/options and special waiting terms are conditions where not separate rows. Copay unknown. MTL rider renewal unknown. Fresh [AXA Value](https://www.axa.co.th/th/personal/health-insurance/value-plan) underwriting1–2 agrees13–60/renewal99; [Essential](https://www.axa.co.th/th/personal/health-insurance/comprehensive-plan) tier4 ICU row agrees24,000/day. [MTL S](https://online.muangthai.co.th/th/Health-IPD-OPD/detail/ipd-opd-sukjai-s) notes3,4,8 support ICU60/combined room180, OPD2/day, conditional rider duration. |
+| Motor | 5 records; 12 rows | All six added risk/BI concepts match independent primary mapping in motor-travel-core-evidence.md. Type1 person-cap varies by brand and remains unknown; excess BI not confused with compulsory. Optional100k natural-perils package remains unselected/null. |
+| Life | 4 records; 12 rows | Purpose, death/maturity/cashback formulas and non-guaranteed benefits separated. Fresh [99/7 table](https://online.muangthai.co.th/th/detail/99-7/plan-table) notes1–3 confirms paid-premium101% alternative and1%initial-sum cashback through98. [15/3 table](https://online.muangthai.co.th/th/detail/global-index-15-3/plan-table) confirms death100/200/300%, maturity310%/101%-premium alternative, even-year3%initial-sum cashback. 99/20 and10/1 formulas cross-reviewed with author’s exact PDF-page mappings; PDFs not independently reread here. No claimed yield/IRR. |
+| Accident | 5 records; 11 rows | Separate ordinary/motorcycle/homicide/public-event benefits; dismemberment proportionality retained in conditions. Fresh [PA Go](https://online.muangthai.co.th/th/detail/pa-go/plan-table) Plan1 confirms public500k and motorcycle250k. [AllInOne](https://online.muangthai.co.th/th/detail/pa-all-in-one/plan-table) S confirms medical45k, motorcycle150k, public600k; daily500/max365 and alternative1000/max45, with note4 same-event90-day rule. Not additive. |
+| Travel | 5 records; 13 rows | Direction exists as subtype; trip/annual in canonical period/name, duration separate. New evacuation/remains/interruption/delay fields agree independent exact-source mapping. Domestic Plan3 matched; unselected outbound/inbound limits remain unknown. Domestic delay-trigger unknown rather than copied from outbound. |
+| Property | 1 record; 12 rows | Building/contents, valuation, shared-perils group, fire, burglaryunknown and occupancy represented. Fresh [Home](https://www.axa.co.th/th/personal/home-insurance/home-plan) conditions1–5 confirms >80%walls, no short-term rental, replacement value, contents FirstLoss and location exclusions. Source spelling ambiguity is disclosed. No new fixed selected sum; original Thai/English price conflict remains quote-only. |
+| Liability | 0 records; 5 dormant rows | **NOT A POPULATED CORE PASS.** Honest empty catalog retained; home liability stays embedded. Dormant schema does not include all research§3 liability concepts (BI/PD/financial loss, jurisdiction, defense costs, claim basis). No user-facing invented product resulted. Complete and research those fields before any future standalone liability record. |
+
+## Limits of this result
+
+Core concepts on the retained products have a dedicated row, canonical metadata, or visible condition. This is not a claim that every condition has its own machine-comparable field. Unknowns are intentional for unselected options, missing wording, rider renewal, copay, burglary and unspecified trip duration. Existing historical starting/example premiums remain labeled; no current quotation was obtained. Full exclusions, current editions and whole-market completeness remain outside this bounded review. Parent’s build/browser checks must establish that these rows and conditions actually render on the deployed build.
