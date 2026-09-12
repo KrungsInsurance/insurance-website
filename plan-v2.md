@@ -47,6 +47,14 @@ P0แก้ที่จุดร่วมโดยtracecallerก่อน; ไ�
 
 ## 3. Flow ที่ต้องทำงาน
 
+### Current override — ChatGPT-assisted Broker pipeline (2026-09-12)
+
+คำสั่งล่าสุดแทนบทบาท recommendation/interest scoring เดิม: **Extract → Retrieve & Structure → Difference Highlighting → หยุด → Broker แนะนำ**. Live ต้อง extract structured fields พร้อม customer quote ก่อน retrieval. ไม่มี priority/weight/rank. งบไม่บังคับ; ราคา quote-only ยังแสดง. Retrieval ใช้ catalog ที่ normalize และผูกแหล่งไว้แล้ว ไม่เพิ่ม ML หรือ ingest PDF ใหม่ต่อบทสนทนา. Compare รักษาหน่วย/ฐาน/unknown และคืนประโยคเชิงพรรณนาให้ ChatGPT ใช้เป็นหลักฐาน. Customer-selected interest และ consent แยกจาก AI mentions. Broker ได้ immutable overview ครบ Need / Current Coverage / Budget / Plans of Interest / Key Differences / Main Question พร้อมข้อมูลแผนและต้นทาง. ไม่มี activity-score calculation หรือ score UI; legacy field อ่านย้อนหลังได้.
+
+สถานะ: IMPLEMENTED + MOCK/CONTRACT VERIFIED — 82 tests, typecheck/build ผ่าน, lint 0 errors/7 existing image warnings; local production browser customer→Broker→reload และ mobile390 ผ่าน. LIVE MODEL EVALUATION PENDING (local ไม่มี key/model). Miro SYNC PENDING. หลักฐานและขอบเขตที่ยังไม่ได้ทำ: [assistant-pipeline-verification](output/assistant-pipeline-verification.md). ข้อความตาม flow เก่าด้านล่างเป็นประวัติเมื่อขัดกับ override นี้.
+
+Browse/Chat follow-up (2026-09-12, คำสั่งล่าสุดแทน needs-first gate): เมื่อทราบหมวดให้ดูตัวเลือกก่อนโดยไม่ต้องกำหนดงบ แล้วค่อยถามความต้องการเพื่อคัดให้แคบลง. เลือกหมวดในแชตข้ามหน้า budget; งบเป็นตัวกรองทางเลือก. Browse รวม quote_only ใน grid และจำนวนผลลัพธ์ แม้กรองงบ โดยระบุว่ายังยืนยันเบี้ยไม่ได้; ยังเคารพหมวด/คำค้น/บริษัท. การ์ด Browse/Chat แสดงจุดเด่นและข้อจำกัดจาก highlights, coverage conditions/status และ exclusions; search tool ส่ง quoteRequired แยกจาก matches เพื่อไม่อ้างว่าเข้าเกณฑ์งบ. Mock เสนอแผนขอราคาแม้ไม่เหลือแผนที่ทราบราคาในงบ. 73 tests ผ่าน; typecheck/build ผ่าน, lint 0 errors/7 existing image warnings. Browser ยืนยัน Browse property แสดง Allianz + AXA ขอราคา และเลือกหมวด Chat ไปการ์ดตรงพร้อมจุดเด่น/ข้อจำกัด. Live model ยังไม่ได้ประเมินจริง (local mock ไม่มี credentials). Miro SYNC PENDING — ไม่มี Miro tools ใน session นี้.
+
 Home → Browse → หมวด/งบที่มีperiodชัด → รายละเอียด → เลือก2–3แผนที่compatible → Compare → ดูเหมือน/ต่าง/ข้อมูลไม่พอ → เปิดChatพร้อมcontext → คำแนะนำ/เปิดCompareจากChat → สนใจแผน → เปิดSummary → ตรวจ/แก้ → consent → ยืนยัน → success+leadstatus → BrokerDashboard → validlead → รับเรื่อง → เริ่มสนทนาจำลอง → timer/notes → จบ+outcome → Accountเห็นstatusเดียวกัน → MyInsurance
 
 ทางแยกที่ต้องครบ:

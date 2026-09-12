@@ -19,6 +19,28 @@ const request = (body:unknown = input, query = "") => new Request(`http://localh
 const validReply = {message:"วงเงินต่อโรคและต่อปีเป็นคนละฐาน",suggestedPlanIds:["health-01"],offerHandoff:false,summaryDraft:null};
 const upstream = (reply:unknown = validReply) => Response.json({status:"completed",output:[{type:"message",content:[{type:"output_text",text:JSON.stringify(reply)}]}]});
 
+test("live needs discovery accepts a plain question without offering plans or handoff",async t=>{
+ configure(t);
+ const question="อยากให้ประกันช่วยดูแลเรื่องใดเป็นพิเศษ?";
+ const fetch=mockChatFetch(t,async()=>upstream({message:question,suggestedPlanIds:[],offerHandoff:false,summaryDraft:null}));
+ const response=await POST(request({messages:[{role:"user",content:"ช่วยเลือกประกันให้หน่อย"}],context:{category:"health",selectedPlanIds:[],budgetTHB:20000,goals:[]}}));
+ assert.equal(response.status,200);
+ const body=await response.json() as CardReply & {suggestedPlanIds:string[];mode:string};
+ assert.equal(body.mode,"live");assert.equal(body.message,question);
+ assert.deepEqual(body.cards,[]);assert.deepEqual(body.suggestedPlanIds,[]);assert.equal(body.offerHandoff,false);
+ assert.equal(fetch.mock.callCount(),1);
+});
+
+function mockChatFetch(t:TestContext,responder:(...args:any[])=>any){ // eslint-disable-line @typescript-eslint/no-explicit-any
+ let conversationCalls=0;
+ const mock=t.mock.method(globalThis,"fetch",async(...args:Parameters<typeof fetch>)=>{
+  const body=JSON.parse((args[1] as RequestInit).body as string);
+  if(body.text?.format?.name==="customer_extraction")return upstream({needs:[],currentCoverage:[],concerns:[],questions:[],budget:null,category:null,categoryQuote:null,mentionedPlans:[]});
+  conversationCalls++;return responder(...args);
+ });
+ return {mock:{callCount:()=>conversationCalls,restore:()=>mock.mock.restore()}};
+}
+
 const read = async (response:Response) => await response.json() as {mode:string;error:{code:string};comparison:{url:string}};
 function configure(t: TestContext) {
  const old = {mode:process.env.CHAT_MODE,key:process.env.OPENAI_API_KEY,model:process.env.OPENAI_MODEL};
@@ -27,7 +49,7 @@ function configure(t: TestContext) {
 }
 
 test("chat rejects invalid client input before calling upstream", async t => {
- configure(t); const fetch = t.mock.method(globalThis,"fetch",async()=>{throw new Error("upstream must not run");});
+ configure(t); const fetch = mockChatFetch(t,async()=>{throw new Error("upstream must not run");});
  const cases = [
   null, [], {}, {...input,messages:[]}, {...input,messages:Array(13).fill({role:"user",content:"a"})},
   ...["system","developer","tool"].map(role=>({...input,messages:[{role,content:"a"}]})),
@@ -46,7 +68,7 @@ test("chat rejects invalid client input before calling upstream", async t => {
 
 test("live without configuration returns 503 and explicit mock never calls OpenAI", async t => {
  configure(t);delete process.env.OPENAI_API_KEY;
- const fetch=t.mock.method(globalThis,"fetch",async()=>{throw new Error("upstream must not run");});
+ const fetch=mockChatFetch(t,async()=>{throw new Error("upstream must not run");});
  assert.equal((await POST(request())).status,503);
  const result=await POST(request(input,"?mode=mock"));assert.equal(result.status,200);assert.equal((await read(result)).mode,"mock");
  assert.equal(fetch.mock.callCount(),0);
@@ -54,7 +76,7 @@ test("live without configuration returns 503 and explicit mock never calls OpenA
 
 for (const [upstreamStatus, expected, code] of [[429,429,"RATE_LIMITED"],[401,502,"CHAT_UPSTREAM_ERROR"],[500,502,"CHAT_UPSTREAM_ERROR"]] as const) {
  test(`upstream ${upstreamStatus} is controlled and not retried`,async t=>{
-  configure(t);const fetch=t.mock.method(globalThis,"fetch",async()=>new Response("upstream diagnostic must not leak",{status:upstreamStatus}));
+  configure(t);const fetch=mockChatFetch(t,async()=>new Response("upstream diagnostic must not leak",{status:upstreamStatus}));
   const response=await POST(request());assert.equal(response.status,expected);const body=await read(response);assert.equal(body.error.code,code);assert.ok(!JSON.stringify(body).includes("diagnostic"));assert.equal(fetch.mock.callCount(),1);
  });
 }
@@ -62,7 +84,7 @@ for (const [upstreamStatus, expected, code] of [[429,429,"RATE_LIMITED"],[401,50
 test("20-second request deadline aborts upstream with 504",async t=>{
  configure(t);t.mock.timers.enable({apis:["setTimeout"]});
  let started:()=>void=()=>{};const ready=new Promise<void>(resolve=>{started=resolve;});
- t.mock.method(globalThis,"fetch",(_url:unknown,options:RequestInit)=>new Promise((_resolve,reject)=>{options.signal!.addEventListener("abort",()=>reject(new DOMException("Aborted","AbortError")));started();}));
+ mockChatFetch(t,(_url:unknown,options:RequestInit)=>new Promise((_resolve,reject)=>{options.signal!.addEventListener("abort",()=>reject(new DOMException("Aborted","AbortError")));started();}));
  const pending=POST(request());await ready;t.mock.timers.tick(20000);const response=await pending;
  assert.equal(response.status,504);assert.equal((await read(response)).error.code,"CHAT_TIMEOUT");
 });
@@ -70,19 +92,19 @@ test("20-second request deadline aborts upstream with 504",async t=>{
 test("refusal, incomplete output and malformed JSON become controlled 502", async t=>{
  configure(t);
  const values=[{status:"incomplete",output:[]},{status:"completed",output:[{type:"message",content:[{type:"refusal"}]}]},{status:"completed",output:[{type:"message",content:[{type:"output_text",text:"{"}]}]},{status:"completed",output:null},null];
- for(const value of values){const fetch=t.mock.method(globalThis,"fetch",async()=>Response.json(value));const response=await POST(request());assert.equal(response.status,502);fetch.mock.restore();}
+ for(const value of values){const fetch=mockChatFetch(t,async()=>Response.json(value));const response=await POST(request());assert.equal(response.status,502);fetch.mock.restore();}
 });
 
 test("invalid model fields, IDs and external URLs are rejected rather than filtered",async t=>{
  configure(t);
  for(const patch of [{message:""},{message:"x".repeat(2001)},{message:"https://example.com"},{message:"www.example.com"},{offerHandoff:"yes"},{summaryDraft:{}},{suggestedPlanIds:["missing"]},{suggestedPlanIds:["motor-01"]},{suggestedPlanIds:["health-01","health-01"]},{extra:true}]){
-  const fetch=t.mock.method(globalThis,"fetch",async()=>upstream({...validReply,...patch}));assert.equal((await POST(request())).status,502,JSON.stringify(patch).slice(0,100));fetch.mock.restore();
+  const fetch=mockChatFetch(t,async()=>upstream({...validReply,...patch}));assert.equal((await POST(request())).status,502,JSON.stringify(patch).slice(0,100));fetch.mock.restore();
  }
 });
 
 test("real tool dispatch reads shared comparison and trusted context",async t=>{
  configure(t);let count=0;let secondBody:Record<string,unknown>={};
- t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{
   const body=JSON.parse(options.body as string);
   assert.equal(body.model,"test-model");assert.equal(body.store,false);
   if(count++===0){assert.ok(body.input[1].content.includes('"budgetTHB":20000'));return Response.json({status:"completed",output:[{type:"function_call",name:"compare_plans",arguments:JSON.stringify({category:"health",planIds:["health-01","health-02"]}),call_id:"call-1"}]});}
@@ -95,14 +117,14 @@ test("real tool dispatch reads shared comparison and trusted context",async t=>{
 
 test("model cannot call tools indefinitely",async t=>{
  configure(t);let count=0;
- t.mock.method(globalThis,"fetch",async()=>{count++;return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"health",maxPremium:20000}),call_id:`call-${count}`}]});});
+ mockChatFetch(t,async()=>{count++;return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"health",maxPremium:20000}),call_id:`call-${count}`}]});});
  const response=await POST(request());assert.equal(response.status,502);assert.equal(count,3);
 });
 
 
 test("tool requests cannot silently change the current category",async t=>{
  configure(t);let count=0;let toolResult:{error?:string}={};
- t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{
   if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"compare_plans",arguments:JSON.stringify({category:"motor",planIds:["motor-01","motor-02"]}),call_id:"wrong-category"}]});
   const body=JSON.parse(options.body as string);toolResult=JSON.parse(body.input.find((item:{type:string})=>item.type==="function_call_output").output);return upstream();
  });
@@ -118,7 +140,7 @@ test("API, mock chat and live tool all reject compulsory versus voluntary compar
  const body = {...input,context:{...context,category:"motor",selectedPlanIds}};
  assert.equal((await POST(request(body,"?mode=mock"))).status,400);
  let count=0;let toolResult:{error?:string}={};
- t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{
   if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"compare_plans",arguments:JSON.stringify({category:"motor",planIds:selectedPlanIds}),call_id:"incompatible"}]});
   const upstreamBody=JSON.parse(options.body as string);toolResult=JSON.parse(upstreamBody.input.find((item:{type:string})=>item.type==="function_call_output").output);
   return upstream({...validReply,suggestedPlanIds:[]});
@@ -128,7 +150,7 @@ test("API, mock chat and live tool all reject compulsory versus voluntary compar
 
 test("budget search retains selected quote-only facts without claiming a budget match",async t=>{
  configure(t);let count=0;let toolResult:{matches:{id:string}[];selectedOutsideFilter:{id:string;price:unknown}[]}={matches:[],selectedOutsideFilter:[]};
- t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{
   if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"motor",maxPremium:600}),call_id:"budget"}]});
   const body=JSON.parse(options.body as string);toolResult=JSON.parse(body.input.find((item:{type:string})=>item.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});
  });
@@ -138,7 +160,7 @@ test("budget search retains selected quote-only facts without claiming a budget 
 
 test("display tools return canonical descriptors and never accept model-injected cards",async t=>{
  configure(t);let count=0;
- t.mock.method(globalThis,"fetch",async()=>count++===0?Response.json({status:"completed",output:[{type:"function_call",name:"show_plan_details",arguments:JSON.stringify({planIds:["health-01"],fieldKeys:["annualLimit"]}),call_id:"details"}]}):upstream());
+ mockChatFetch(t,async()=>count++===0?Response.json({status:"completed",output:[{type:"function_call",name:"show_plan_details",arguments:JSON.stringify({planIds:["health-01"],fieldKeys:["annualLimit"]}),call_id:"details"}]}):upstream());
  const response=await POST(request());assert.equal(response.status,200);const body=await response.json() as CardReply;
  assert.deepEqual(body.cards,[{type:"plans",planIds:["health-01"],fieldKeys:["annualLimit"]}]);assert.ok(!JSON.stringify(body.cards).includes("2500000"));
 });
@@ -146,22 +168,22 @@ test("display tools return canonical descriptors and never accept model-injected
 test("invalid display fields, mixed IDs and invented card content cannot create cards",async t=>{
  configure(t);
  for(const args of [{planIds:["health-01"],fieldKeys:["fakeBenefit"]},{planIds:["health-01","motor-01"],fieldKeys:[]},{planIds:["health-01"],fieldKeys:[],premium:0},{planIds:["health-01","health-01"],fieldKeys:[]}]){
-  let count=0;let toolResult:{error?:string}={};const f=t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"show_plan_details",arguments:JSON.stringify(args),call_id:"invalid"}]});toolResult=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
+  let count=0;let toolResult:{error?:string}={};const f=mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"show_plan_details",arguments:JSON.stringify(args),call_id:"invalid"}]});toolResult=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
   assert.equal((await POST(request())).status,502);assert.equal(toolResult.error,"INVALID_TOOL_ARGUMENTS");f.mock.restore();
  }
- const f=t.mock.method(globalThis,"fetch",async()=>upstream({...validReply,cards:[{type:"plans",planIds:["health-01"],fieldKeys:[]}]}));assert.equal((await POST(request())).status,502);f.mock.restore();
+ const f=mockChatFetch(t,async()=>upstream({...validReply,cards:[{type:"plans",planIds:["health-01"],fieldKeys:[]}]}));assert.equal((await POST(request())).status,502);f.mock.restore();
 });
 
 test("model handoff boolean alone cannot offer handoff; valid tool only offers descriptor",async t=>{
  configure(t);let count=0;
- const f=t.mock.method(globalThis,"fetch",async()=>count++===0?Response.json({status:"completed",output:[{type:"function_call",name:"ask_preferences",arguments:JSON.stringify({kind:"budget",category:"motor",prompt:"ต้องการเปลี่ยนหมวดไหม?"}),call_id:"question"}]}):upstream({...validReply,suggestedPlanIds:[],offerHandoff:true}));
+ const f=mockChatFetch(t,async()=>count++===0?Response.json({status:"completed",output:[{type:"function_call",name:"ask_preferences",arguments:JSON.stringify({kind:"budget",category:"motor",prompt:"ต้องการเปลี่ยนหมวดไหม?"}),call_id:"question"}]}):upstream({...validReply,suggestedPlanIds:[],offerHandoff:true}));
  const body=await (await POST(request())).json() as CardReply;assert.equal(body.offerHandoff,false);assert.equal(body.cards[0].type,"question");assert.ok("category" in body.cards[0]);assert.equal(body.cards[0].category,"motor");f.mock.restore();
- count=0;t.mock.method(globalThis,"fetch",async()=>count++===0?Response.json({status:"completed",output:[{type:"function_call",name:"offer_specialist",arguments:JSON.stringify({planIds:["health-01"],reason:"ตรวจเงื่อนไข"}),call_id:"handoff"}]}):upstream());
+ count=0;mockChatFetch(t,async()=>count++===0?Response.json({status:"completed",output:[{type:"function_call",name:"offer_specialist",arguments:JSON.stringify({planIds:["health-01"],reason:"ตรวจเงื่อนไข"}),call_id:"handoff"}]}):upstream());
  const handoff=await (await POST(request())).json() as CardReply;assert.equal(handoff.offerHandoff,true);assert.equal(handoff.cards[0].type,"handoff");assert.equal(handoff.summaryDraft,null);
 });
 
 test("mock onboarding, budget, details, comparison and handoff use validated cards",async()=>{
- const cases=[{category:null,ids:[],budget:null,text:"เริ่ม",type:"question"},{category:"health",ids:[],budget:null,text:"สุขภาพ",type:"question"},{category:"health",ids:["health-01"],budget:20000,text:"รายละเอียดแผนที่เลือก",type:"plans"},{category:"health",ids:["health-01","health-02"],budget:20000,text:"เปรียบเทียบ",type:"comparison"},{category:"health",ids:["health-01"],budget:20000,text:"คุยผู้เชี่ยวชาญ",type:"handoff"}];
+ const cases=[{category:null,ids:[],budget:null,text:"เริ่ม",type:"question"},{category:"health",ids:[],budget:null,text:"สุขภาพ",type:"plans"},{category:"health",ids:["health-01"],budget:20000,text:"รายละเอียดแผนที่เลือก",type:"plans"},{category:"health",ids:["health-01","health-02"],budget:20000,text:"เปรียบเทียบ",type:"comparison"},{category:"health",ids:["health-01"],budget:20000,text:"คุยผู้เชี่ยวชาญ",type:"handoff"}];
  for(const c of cases){const response=await POST(request({messages:[{role:"user",content:c.text}],context:{category:c.category,selectedPlanIds:c.ids,budgetTHB:c.budget}},"?mode=mock"));assert.equal(response.status,200);const body=await response.json() as CardReply;assert.equal(body.cards[0].type,c.type);assert.ok(body.message.length<=500);}
 });
 
@@ -177,7 +199,7 @@ test("stored card failures preserve unrelated state and client projection strips
 
 test("term tools use glossary allowlist and schemas bound cards and reply size",async t=>{
  configure(t);let count=0;let result:Record<string,unknown>={};
- t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"explain_term",arguments:JSON.stringify({term:"copay"}),call_id:"term"}]});result=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"explain_term",arguments:JSON.stringify({term:"copay"}),call_id:"term"}]});result=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
  const response=await POST(request());assert.equal(response.status,200);const body=await response.json() as CardReply;assert.deepEqual(body.cards,[{type:"term",term:"copay"}]);
  const {insuranceTerms}=await import("../lib/insurance-terms.ts");assert.deepEqual(result.definition,insuranceTerms.copay);
  const {chatCardsSchema}=await import("../lib/types.ts");assert.equal(chatCardsSchema.safeParse(Array(5).fill({type:"term",term:"copay"})).success,false);
@@ -190,12 +212,12 @@ test("mock named-plan intent takes precedence over glossary and never switches c
   const wrong=await (await POST(req("health"))).json() as CardReply;assert.equal(wrong.cards[0].type,"question");assert.ok("category" in wrong.cards[0]);assert.equal(wrong.cards[0].category,"motor");
   const right=await (await POST(req("motor"))).json() as CardReply;assert.deepEqual(right.cards,[{type:"plans",planIds:["motor-01"],fieldKeys:["thirdPartyProperty"]}]);
  }
- const onboarding=await (await POST(request({messages:[{role:"user",content:"สนใจประกันสุขภาพ ช่วยเริ่มเลือกแผน ถามทีละข้อและให้เลือกตอบในแชต"}],context:{category:"health",selectedPlanIds:[],budgetTHB:20000}},"?mode=mock"))).json() as CardReply;assert.equal(onboarding.cards[0].type,"question");assert.ok("kind" in onboarding.cards[0]);assert.equal(onboarding.cards[0].kind,"budget");
+ const onboarding=await (await POST(request({messages:[{role:"user",content:"สนใจประกันสุขภาพ ช่วยเริ่มเลือกแผน ถามทีละข้อและให้เลือกตอบในแชต"}],context:{category:"health",selectedPlanIds:[],budgetTHB:20000}},"?mode=mock"))).json() as CardReply;assert.equal(onboarding.cards[0].type,"plans");
 });
 
 test("lookup fallback delivers requested canonical field with consistent server text",async t=>{
  configure(t);let count=0;
- t.mock.method(globalThis,"fetch",async()=>count++===0?Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"motor",maxPremium:null}),call_id:"search"}]}):upstream({...validReply,message:"ยังแสดงการ์ดไม่ได้",suggestedPlanIds:["motor-01"]}));
+ mockChatFetch(t,async()=>count++===0?Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"motor",maxPremium:null}),call_id:"search"}]}):upstream({...validReply,message:"ยังแสดงการ์ดไม่ได้",suggestedPlanIds:["motor-01"]}));
  const result=await (await POST(request({messages:[{role:"user",content:"motor-01 ทรัพย์สินบุคคลภายนอกเท่าไร"}],context:{category:"motor",selectedPlanIds:["motor-01"],budgetTHB:null}}))).json() as CardReply;
  assert.deepEqual(result.cards,[{type:"plans",planIds:["motor-01"],fieldKeys:["thirdPartyProperty"]}]);assert.ok(!result.message.includes("ไม่ได้"));
 });
@@ -208,9 +230,22 @@ test("explicit budget skip proceeds to mock plan cards across all seven categori
  }
 });
 
+test("category alone shows options without budget and keeps quote-only plans visible",async()=>{
+ for(const category of ["health","motor","life","property"]){
+  const response=await POST(request({messages:[{role:"user",content:"ขอดูตัวเลือกพร้อมจุดเด่นและข้อจำกัด"}],context:{category,selectedPlanIds:[],budgetTHB:null}},"?mode=mock"));
+  assert.equal(response.status,200);const body=await response.json() as CardReply;
+  const plans=body.cards.filter(card=>card.type==="plans").flatMap(card=>card.planIds);
+  assert.ok(plans.length>0,category);assert.ok(plans.some(id=>getPlan(id)?.price.kind==="quote_only"),category);
+  assert.ok(!body.cards.some(card=>card.type==="question"&&card.kind==="budget"));
+ }
+ const response=await POST(request({messages:[{role:"user",content:"ขอดูตัวเลือก"}],context:{category:"property",selectedPlanIds:[],budgetTHB:0}},"?mode=mock"));
+ const body=await response.json() as CardReply;
+ assert.ok(body.cards.some(card=>card.type==="plans"&&card.planIds.some(id=>getPlan(id)?.price.kind==="quote_only")));
+});
+
 test("Chat annual budget excludes trip premiums using optional shared search period",async t=>{
  configure(t);let count=0;let toolResult:{matches:{id:string}[];selectedOutsideFilter:{id:string}[];budgetBasis:{maxPremium:number|null;period:string|null}};
- t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"travel",maxPremium:2000}),call_id:"annual-budget"}]});toolResult=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"travel",maxPremium:2000}),call_id:"annual-budget"}]});toolResult=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
  const response=await POST(request({messages:[{role:"user",content:"งบอ้างอิง 2000 บาทต่อปี หาแผนเดินทาง"}],context:{category:"travel",selectedPlanIds:["travel-01"],budgetTHB:2000}}));
  assert.equal(response.status,200);assert.deepEqual(toolResult!.matches.map(p=>p.id),["travel-02"]);assert.deepEqual(toolResult!.selectedOutsideFilter.map(p=>p.id),["travel-01"]);assert.equal(toolResult!.budgetBasis.period,"year");
  const {searchPlans}=await import("../lib/catalog.ts");assert.ok(searchPlans({category:"travel",maxPremium:2000}).some(p=>p.id==="travel-01"));assert.deepEqual(searchPlans({category:"travel",maxPremium:2000,premiumPeriod:"year"}).map(p=>p.id),["travel-02"]);
@@ -218,6 +253,6 @@ test("Chat annual budget excludes trip premiums using optional shared search per
 
 test("explicit skip remains unbounded even if live model supplies zero budget",async t=>{
  configure(t);let count=0;let toolResult:{matches:{id:string}[];budgetBasis:{maxPremium:number|null;period:string|null}};
- t.mock.method(globalThis,"fetch",async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"travel",maxPremium:0}),call_id:"skip"}]});toolResult=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{if(count++===0)return Response.json({status:"completed",output:[{type:"function_call",name:"search_plans",arguments:JSON.stringify({category:"travel",maxPremium:0}),call_id:"skip"}]});toolResult=JSON.parse(JSON.parse(options.body as string).input.find((i:{type:string})=>i.type==="function_call_output").output);return upstream({...validReply,suggestedPlanIds:[]});});
  assert.equal((await POST(request({messages:[{role:"user",content:"ยังไม่กำหนดงบ ขอเริ่มดูแผนประกันเดินทาง พร้อมการ์ด"}],context:{category:"travel",selectedPlanIds:[],budgetTHB:null}}))).status,200);assert.equal(toolResult!.budgetBasis.maxPremium,null);assert.equal(toolResult!.budgetBasis.period,null);assert.ok(toolResult!.matches.some(p=>p.id==="travel-01"));
 });

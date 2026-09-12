@@ -100,6 +100,8 @@ export type CustomerProfile = {
 export type PlanSort = "price-asc" | "price-desc" | "name";
 
 export type CustomerSummary = {
+  overview?: import("./assistant-overview").AssistantOverview;
+  currentCoverage?: string[];
   category: Category;
   budgetTHB: number | null;
   needs: string[];
@@ -113,5 +115,5 @@ export type CustomerSummary = {
 
 export type LeadStatus = "new" | "contacting" | "follow_up" | "closed";
 export type LeadCall = { id: string; startedAt: string; endedAt: string | null; outcome: "interested" | "follow_up" | "not_interested" | null; note: string };
-export type Lead = { planFacts?: Plan[]; id: string; customerId: "demo-customer"; displayName: string; status: LeadStatus; createdAt: string; updatedAt: string; consentAt: string; contactWindow: CustomerProfile["contactWindow"]; summary: CustomerSummary; transcript: { role: "user" | "assistant"; content: string; mode?: "live" | "mock"; cards?: ChatCard[] }[]; interestScore: number; notes: string; calls: LeadCall[] };
+export type Lead = { planFacts?: Plan[]; id: string; customerId: "demo-customer"; displayName: string; status: LeadStatus; createdAt: string; updatedAt: string; consentAt: string; contactWindow: CustomerProfile["contactWindow"]; summary: CustomerSummary; transcript: { role: "user" | "assistant"; content: string; mode?: "live" | "mock"; cards?: ChatCard[] }[]; interestScore?: number; notes: string; calls: LeadCall[] };
 

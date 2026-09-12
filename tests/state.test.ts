@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { initialDemoState, interestScore, makeSummary, safeLoad, readDemoStorage, writeDemoStorage, clearDemoStorage, STORAGE_KEY, chatRequestBody } from "../lib/demo-state.ts";
+import { initialDemoState, makeSummary, safeLoad, readDemoStorage, writeDemoStorage, clearDemoStorage, STORAGE_KEY, chatRequestBody } from "../lib/demo-state.ts";
 import { getPlan } from "../lib/catalog.ts";
 
 test("demo state seeds policies and survives a valid envelope", () => {
@@ -34,18 +34,9 @@ test("rolling chat preserves newest text while limiting UTF-8 and escaped JSON b
  for(const text of ["ก".repeat(1900),"\u0000".repeat(1900)]){const history=Array.from({length:12},(_,i)=>({role:i%2?"user" as const:"assistant" as const,content:`${i}${text}`}));const body=chatRequestBody(history,context),parsed=JSON.parse(body);assert.ok(new TextEncoder().encode(body).byteLength<=32768);assert.ok(parsed.messages.length<12);assert.equal(parsed.messages.at(-1).content,history.at(-1)!.content);assert.deepEqual(parsed.context,context);}
 });
 test("summary IDs remain stable after selection mutation",()=>{const state=initialDemoState();state.comparedPlanIds=["health-01"];const summary=makeSummary(state);state.comparedPlanIds.push("health-02");assert.deepEqual(summary?.comparedPlanIds,["health-01"]);});
-test("interest score uses explicit events, with stable 50/70/100 thresholds", () => {
- const signals = initialDemoState().signals;
- assert.equal(interestScore(signals), 0);
- signals.interested = true;
- assert.equal(interestScore(signals), 50);
- signals.budgetSet = true;
- assert.equal(interestScore(signals), 70);
- signals.interested = true;
- assert.equal(interestScore(signals), 70);
- signals.detailOpened = true;
- signals.compareCompleted = true;
- assert.equal(interestScore(signals), 100);
+test("explicit interest can be summarized without an activity score or budget", () => {
+ const state=initialDemoState();state.interestedPlanIds=["health-01"];state.profile.budgetTHB=null;
+ const summary=makeSummary(state)!;assert.deepEqual(summary.interestedPlanIds,["health-01"]);assert.equal(summary.budgetTHB,null);assert.ok(!("score" in summary));
 });
 
 test("stored conversation mode survives reload and unsafe plan snapshots are rejected",()=>{

@@ -45,11 +45,15 @@ npm run start
 
 เปิด http://127.0.0.1:8787 คำสั่งนี้รัน Worker บนเครื่องเท่านั้น ไม่ deploy ขึ้นอินเทอร์เน็ต
 
+## Demo AI → Broker
+
+Flow ปัจจุบัน: **Extract → Retrieve & Structure → Highlight → Broker แนะนำ**. ChatGPT API จับคำพูดเป็นข้อมูลแยกช่องพร้อมข้อความต้นทางก่อนเรียก tools ดึงแผน ระบบเทียบข้อเท็จจริงโดยไม่ให้คะแนนหรือจัดอันดับความเหมาะสม จากนั้นเก็บ Broker Overview ครบ 6 ส่วนเมื่อผู้ใช้ตรวจและยินยอม. แผนในเดโมใช้ catalog ที่ normalize และผูกแหล่งข้อมูลไว้แล้ว ไม่ได้อ่าน PDF ใหม่ทุกครั้ง. ดูขอบเขตและผลตรวจที่ [pipeline verification](output/assistant-pipeline-verification.md).
+
 ## เปิด Live Chat
 
 แก้ `.env.local`: ตั้ง `CHAT_MODE=live`, ใส่ `OPENAI_API_KEY` ของคุณ และ `OPENAI_MODEL` เป็น model ID ที่บัญชีเข้าถึงได้ แล้ว restart `npm run start` ซึ่งอ่านไฟล์นี้ฝั่ง server ผ่าน Wrangler
 
-ห้ามใช้ `NEXT_PUBLIC_` กับ key และห้าม commit `.env.local`/`.dev.vars` ค่า secret จากเครื่องเดิมไม่ได้อยู่ใน repo หน้าแชตสลับเป็น “บทสนทนาตัวอย่าง” ได้เมื่อยังไม่มี Live access
+ห้ามใช้ `NEXT_PUBLIC_` กับ key และห้าม commit `.env.local`/`.dev.vars` ค่า secret จากเครื่องเดิมไม่ได้อยู่ใน repo หน้าแชตเริ่มเป็น “บทสนทนาตัวอย่าง” สำหรับเดโม; เลือก “Live AI” เพื่อเรียก API จริง หากไม่มี key/model จะแจ้งข้อผิดพลาด ไม่สลับเป็น mock เงียบ ๆ
 
 ข้อมูลลูกค้า/selection/Lead/Broker เก็บใน localStorage ของแต่ละเบราว์เซอร์ จึงไม่ย้ายไปเครื่องใหม่ด้วย Git; ใช้ข้อมูลจำลองสร้าง flow ใหม่บนเครื่องนั้น
 

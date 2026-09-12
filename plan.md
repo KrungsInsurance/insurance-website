@@ -411,6 +411,10 @@ My Account อธิบาย “ข้อมูลตัวอย่างเ�
 
 ## 12. Implementation phases และจุดรับงาน
 
+2026-09-12 — ChatGPT Broker pipeline override: structured extraction with verbatim customer evidence → canonical retrieval → descriptive differences → consented immutable Broker Overview. ลบ activity-score calculation/UI; AI ไม่จัดอันดับหรือแนะนำให้ซื้อ. 82 tests/typecheck/build ผ่าน; local production + desktop/mobile customer→Broker→reload ผ่าน. Actual Live evaluation PENDING ไม่มี credentials; Miro SYNC PENDING ไม่มี tool. สเปกล่าสุดอยู่ใน plan-v2.md §3 และ output/assistant-pipeline-verification.md.
+
+2026-09-12 — Browse/Chat follow-up ตามคำสั่งล่าสุด: แสดงแผนขอใบเสนอราคาใน grid และจำนวนผลลัพธ์ พร้อมจุดเด่น/ข้อจำกัด; เลือกหมวดในแชตแล้วดูแผนได้เลย ไม่บังคับงบ (แทน needs-first gate รอบก่อน). 73 tests ผ่าน; typecheck/build ผ่าน; lint 0 errors/7 existing image warnings. Browser ยืนยัน property quote-only และ Chat ข้าม budget ไปการ์ดแล้ว. Live model evaluation ยังรอ credentials. Miro SYNC PENDING; รายละเอียดปัจจุบันใน plan-v2.md §3.
+
 Current follow-up: user-authorized UX refresh12Sep2026 is tracked in plan-v2.md “UX refresh” and output/refresh-verification.md. Historical v1 DONE statuses below do not establish completion of this new scope.
 
 | Phase | Depends | อ่านเพิ่ม | ส่งมอบ | Acceptance | Status |
