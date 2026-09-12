@@ -4,6 +4,7 @@ import { categoryFields, catalog } from "./catalog.ts";
 import { categories, coverageCellSchema, priceSchema, sourceEvidenceSchema, type Plan, type Policy } from "./types.ts";
 
 const numericFields = new Set([
+  "waitingPeriod", "golfDeathBenefit", "golfMedicalPerAccident", "golfLiabilityPerOccurrence", "golfEquipmentPerOccurrence", "golfEquipmentAggregate",
   "combinedPropertyLimit", "voluntaryMedicalPerPerson", "hospitalAdmissionBenefit",
   "annualLimit", "perDiseaseLimit", "perAdmissionLimit", "roomPerDay", "opdPerYear", "deductible", "waitingDays",
   "ownDamageLimit", "thirdPartyProperty", "medicalPerPerson", "sumAssured", "coverageYears", "coverageUntilAge", "paymentYears",

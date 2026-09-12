@@ -25,13 +25,14 @@ function PlanEvidence({plans}:{plans:Plan[]}) {
   {plans.map(plan=><section key={plan.id}>
    <h4>{plan.name}</h4>
    <p>{formatPrice(plan.price)}</p>
+   <h5>การสมัคร</h5><p>{plan.eligibility}</p>
    {plan.highlights.length>0&&<><h5>จุดเด่น</h5><ul>{plan.highlights.map(text=><li key={text}>{text}</li>)}</ul></>}
    <dl>{categoryFields[plan.category].map(field=>{
     const cell=plan.coverageCells[field.key];
     return <div key={field.key}><dt>{shortFieldLabel(field.key,field.label)}</dt><dd>{cell.status==="known"?formatCoverageCell(cell):shortCoverage(cell)}{cell.status!=="known"&&cell.conditions.map(condition=><p key={condition}>{condition}</p>)}</dd></div>;
    })}</dl>
    {plan.exclusions.length>0&&<><h5>ข้อจำกัด</h5><ul>{plan.exclusions.map(text=><li key={text}>{text}</li>)}</ul></>}
-   <h5>แหล่งข้อมูล</h5>{plan.sources.map(source=><a key={source.id} href={source.url} target="_blank" rel="noreferrer">{source.publisher} · {source.locator} ↗</a>)}
+   <h5>แหล่งข้อมูล</h5>{plan.sources.filter((source,index,all)=>all.findIndex(item=>item.url===source.url)===index).map(source=><a key={source.id} href={source.url} target="_blank" rel="noreferrer">{source.publisher} · {source.locator} ↗</a>)}
   </section>)}
  </details>;
 }

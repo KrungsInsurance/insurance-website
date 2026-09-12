@@ -50,7 +50,7 @@ test("automatic comparison uses up to three existing compatible plans without in
   }
   assert.equal(selectPersonaPlans({ ...persona, category: "property", priorities: ["flood"] }).length, 3);
   assert.equal(selectPersonaPlans({ ...persona, category: "liability", priorities: ["activity"] }).length, 2);
-  assert.equal(selectPersonaPlans({ ...persona, category: "event", priorities: ["wedding"] }).length, 1);
+  assert.equal(selectPersonaPlans({ ...persona, category: "event", priorities: ["wedding"] }).length, 2);
   assert.equal(JSON.stringify(catalog), before);
 });
 

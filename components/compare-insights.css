@@ -3,3 +3,9 @@
 .compare-cell-qualifier{display:block;font-size:12px;line-height:1.7;color:#6e6e73;margin-top:5px;font-weight:400}.compare-insight-grid .compare-cell{margin-top:6px}.compare-insight-grid .compare-cell-value{font-size:20px}
 
 .comparison-page .comparison-table table{table-layout:fixed}.compare-label-column{width:168px}@media(max-width:700px){.compare-label-column{width:130px}}
+/* Each plan fits beside the pinned row label on a phone. */
+@media(max-width:640px){
+  .comparison-page .comparison-table table[data-plan-count="2"]{width:calc(200vw - 214px);min-width:0!important;}
+  .comparison-page .comparison-table table[data-plan-count="3"]{width:calc(300vw - 386px);min-width:0!important;}
+  .comparison-page .comparison-table td{min-width:0;}
+}

@@ -14,10 +14,10 @@ const plan = (id: string): Plan => { const result = getPlan(id); assert.ok(resul
 
 test("catalog expansion adds distinct sourced products across thirteen categories", () => {
   assert.equal(categories.length, 13);
-  assert.equal(catalog.length, 82);
-  assert.equal(new Set(catalog.map(item => item.productId)).size, 78);
-  assert.equal(catalogExpansionRecords.length, 42);
-  assert.equal(new Set(expanded.map(item => item.productId)).size, 42);
+  assert.equal(catalog.length, 83);
+  assert.equal(new Set(catalog.map(item => item.productId)).size, 79);
+  assert.equal(catalogExpansionRecords.length, 43);
+  assert.equal(new Set(expanded.map(item => item.productId)).size, 43);
   assert.deepEqual(validateCatalog(), []);
   for (const category of categories) assert.ok(catalog.some(item => item.category === category));
   assert.equal(catalog.filter(item => item.category === "property").length, 12);
@@ -26,13 +26,19 @@ test("catalog expansion adds distinct sourced products across thirteen categorie
 test("product overviews keep unknown prices and limits without turning advertised options into selected benefits", () => {
   for (const item of expanded) {
     assert.equal(item.tierLabel, null);
-    assert.equal(item.price.kind, "quote_only");
-    assert.equal(item.price.amountTHB, null);
+    if (item.id === "sports-01") { assert.equal(item.price.kind, "starting"); assert.equal(item.price.amountTHB, 913.78); }
+    else { assert.equal(item.price.kind, "quote_only"); assert.equal(item.price.amountTHB, null); }
     assert.ok(item.sources.every(source => source.checkedAt === "2026-09-12" && new URL(source.url).protocol === "https:"));
     for (const cell of Object.values(item.coverageCells)) {
-      assert.equal(cell.inclusion, "unknown");
-      if (cell.status === "unknown") { assert.equal(cell.value, null); assert.deepEqual(cell.sourceIds, []); }
-      else { assert.equal(typeof cell.value, "string"); assert.ok(cell.sourceIds.length > 0); }
+      if (!cell.sourceIds.some(id => id.includes(":audit-"))) assert.equal(cell.inclusion, "unknown");
+      if (cell.status === "unknown") {
+        assert.equal(cell.value, null);
+        if (cell.sourceIds.length) {
+          assert.ok(cell.conditions.length, "Sourced unknowns must explain the unselected or unresolved field");
+          assert.ok(cell.sourceIds.every(id => item.sources.some(source => source.id === id)));
+        }
+      }
+      else { assert.ok(cell.sourceIds.length > 0); if (cell.status === "known") { assert.notEqual(cell.value, null); if (typeof cell.value === "number") assert.ok(cell.unit && cell.basis); } else assert.equal(cell.value, null); }
     }
     assert.equal(planImages[item.id].kind, "illustration");
     assert.equal(planImages[item.id].sourceUrl, item.source.url);
@@ -44,10 +50,12 @@ test("product overviews keep unknown prices and limits without turning advertise
 
 test("wedding discovery exposes current event cover for enquiry without inventing wedding acceptance", () => {
   const result = searchPlans({ category: "event", q: "งานแต่ง" });
-  assert.deepEqual(result.map(item => item.id), ["event-01"]);
-  assert.equal(result[0].coverageCells.weddingEligibility.status, "unknown");
-  assert.equal(result[0].coverageCells.weddingEligibility.value, null);
-  assert.match(result[0].exclusions.join(" "), /ต้องสอบถาม/);
+  assert.deepEqual(result.map(item => item.id), ["event-01", "event-02"]);
+  assert.equal(plan("event-01").coverageCells.weddingEligibility.status, "unknown");
+  assert.equal(plan("event-01").coverageCells.weddingEligibility.value, null);
+  assert.match(plan("event-01").exclusions.join(" "), /ต้องสอบถาม/);
+  assert.equal(plan("event-02").coverageCells.weddingEligibility.status, "known");
+  assert.match(String(plan("event-02").coverageCells.weddingEligibility.value), /งานแต่งงาน/);
   assert.ok(!browseRefinements.event.fields.some(field => /health|medical|disease/.test(field.key)));
   assert.deepEqual(refineBrowsePlans(result, "event", "wedding"), result);
 });
@@ -66,4 +74,50 @@ test("business and critical illness comparisons preserve the purpose of each pro
   const illness = selectPersonaPlans({ ...context, category: "critical-illness", priorities: ["multi-disease"] });
   assert.equal(illness.length, 3);
   assert.ok(illness.every(item => item.comparisonGroup === "critical-illness:multi-disease"));
+});
+
+
+test("verified enrichment keeps exact clauses, optional scope and conflicting publisher wording", () => {
+  assert.equal(plan("critical-illness-01").coverageCells.waitingPeriod.value, 90);
+  assert.equal(plan("critical-illness-01").coverageCells.waitingPeriod.unit, "วัน");
+  for (const id of ["pet-02", "pet-03"]) {
+    assert.equal(plan(id).coverageCells.waitingPeriod.status, "conflicting");
+    assert.equal(plan(id).coverageCells.waitingPeriod.value, null);
+  }
+  assert.equal(plan("property-08").coverageCells.deductible.status, "unknown");
+  assert.equal(plan("property-09").coverageCells.deductible.basis, "per_water_damage_occurrence");
+  assert.equal(plan("cyber-01").coverageCells.responseCosts.inclusion, "unknown");
+  assert.equal(plan("sports-01").coverageCells.golfEquipmentPerOccurrence.value, 20000);
+  assert.equal(plan("sports-01").coverageCells.golfEquipmentAggregate.value, 20000);
+  assert.notEqual(plan("sports-01").coverageCells.golfEquipmentPerOccurrence.basis, plan("sports-01").coverageCells.golfEquipmentAggregate.basis);
+  assert.equal(plan("sports-02").coverageCells.golfEquipmentAggregate.status, "unknown");
+  assert.equal(plan("business-04").premiumPeriod, "year");
+  assert.equal(plan("business-04").price.period, "year");
+  assert.match(plan("business-01").name, /FIT OUT LITE/);
+  assert.equal(plan("critical-illness-08").coverageCells.waitingPeriod.value, 90);
+  assert.equal(plan("critical-illness-08").coverageCells.waitingPeriod.basis, "waiting_period");
+  assert.match(plan("critical-illness-08").coverageCells.waitingPeriod.conditions.join(" "), /ส่วนเพิ่ม/);
+  assert.equal(plan("property-11").coverageCells.floodLimit.value, 20000);
+  assert.equal(plan("property-14").coverageCells.sharedNaturalPerilsLimit.basis, "per_policy_year");
+  assert.equal(plan("property-14").coverageCells.floodLimit.status, "unknown");
+  assert.equal(plan("health-01").coverageCells.deductible.status, "unknown");
+  assert.equal(plan("health-01").coverageCells.deductible.value, null);
+  assert.match(plan("health-01").coverageCells.deductible.conditions.join(" "), /20,000/);
+  assert.equal(plan("health-07").coverageCells.opdVisitsPerDay.inclusion, "optional");
+  assert.equal(plan("health-07").coverageCells.opdVisitsPerDay.value, 1);
+  assert.equal(plan("health-08").coverageCells.waitingDays.value, 30);
+  assert.match(plan("health-08").coverageCells.waitingDays.conditions.join(" "), /มะเร็งระยะลุกลาม.*90 วัน/);
+  assert.match(plan("accident-03").sources.find(source => source.id === "accident-03:occupationClass")!.url, /pa-cashback$/);
+});
+
+test("documented choices and unestablished limits remain unresolved in comparisons", () => {
+  for (const [id, field] of [["health-01", "deductible"], ["health-02", "deductible"], ["health-08", "deductible"], ["motor-01", "repairType"], ["motor-03", "repairType"], ["health-04", "roomBasis"], ["health-05", "roomBasis"], ["travel-06", "maxTripDays"], ["life-01", "guaranteedCashback"]]) {
+    const cell = plan(id).coverageCells[field];
+    assert.equal(cell.status, "unknown", `${id}:${field}`);
+    assert.equal(cell.value, null);
+    assert.ok(cell.sourceIds.length && cell.conditions.length);
+  }
+  const comparison = buildComparison("health", ["health-01", "health-02", "health-08"]);
+  assert.equal(comparison.rows.find(row => row.key === "deductible")?.status, "insufficient");
+  assert.doesNotMatch(plan("health-08").highlights.join(" "), /ไม่มีส่วนแรก/);
 });

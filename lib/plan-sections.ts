@@ -58,6 +58,7 @@ export const planSections: Record<Category, readonly { title: string; keys: read
     { title: "เมื่องานสะดุด", keys: ["cancellationScope", "lossOfProfit", "benefitLimit", "deductible"] },
   ],
   sports: [
+    { title: "วงเงิน", keys: ["golfDeathBenefit", "golfMedicalPerAccident", "golfLiabilityPerOccurrence", "golfEquipmentPerOccurrence", "golfEquipmentAggregate"] },
     { title: "กีฬาของคุณ", keys: ["sportType", "territory"] },
     { title: "ความคุ้มครอง", keys: ["accidentScope", "equipmentScope", "thirdPartyLiability", "benefitLimit"] },
   ],

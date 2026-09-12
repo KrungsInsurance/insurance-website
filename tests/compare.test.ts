@@ -159,3 +159,20 @@ test("compact prices keep starting and example qualifiers outside their disclosu
  assert.match(compactPrice({...price,kind:"example"}),/^ตัวอย่าง /);
  assert.doesNotMatch(compactPrice({...price,scenario:"รายละเอียดสมมติยาว"}),/รายละเอียดสมมติ/);
 });
+
+
+test("comparison separates product descriptions from unselected benefit entitlements", () => {
+  const pet = buildComparison("pet", ["pet-02", "pet-03"]);
+  assert.equal(pet.rows.find(row => row.key === "petType")?.status, "same");
+  assert.equal(pet.rows.find(row => row.key === "treatmentScope")?.status, "insufficient");
+  assert.equal(pet.rows.find(row => row.key === "waitingPeriod")?.status, "insufficient");
+  assert.equal(buildComparison("health", ["health-01", "health-02"]).rows.find(row => row.key === "premiumTHB")?.status, "not_comparable");
+});
+
+test("numbers without a unit cannot become a verified match", () => {
+  const cell = { ...getPlan("health-01")!.coverageCells.roomPerDay, unit: null };
+  assert.equal(compareCells([cell, cell]), "insufficient");
+  const withUnit = { ...cell, unit: "บาท" };
+  assert.equal(compareCells([withUnit, withUnit]), "same");
+  assert.equal(compareCells([withUnit, { ...withUnit, conditions: ["shared cap"] }]), "different");
+});

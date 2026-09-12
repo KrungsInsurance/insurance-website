@@ -16,4 +16,6 @@ Latest user override: redesign the copy/hierarchy of every existing page. One pa
 
 Shared integration owner: root; shared presentation helpers/styles, build/local server and final responsive QA. Implement in batches of three page teams. Teams review their own pages in the production browser after integration; root checks mobile and cross-page consistency and sends revisions if needed. No extra API/model/catalog rewrite. No new dependencies.
 
-Validation: semantic labels/focus, no horizontal page overflow at 390px, Thai glyphs unclipped, readable numbers, 44px actions, no source-link repetition, condition detail reachable, tests/typecheck/lint/build and local browser flows. Status: IN PROGRESS. Miro sync pending (no callable tool).
+Validation: semantic labels/focus, no horizontal page overflow at 390px, Thai glyphs unclipped, readable numbers, 44px actions, no source-link repetition, condition detail reachable, tests/typecheck/lint/build and local browser flows. Status: DONE — all9pages integrated and verified; evidence in output/page-readability-verification.md. Miro sync pending (no callable tool).
+
+Completed QA revision: Broker trigger/question paragraphs changed to concise bullets, original question remains the draft action. Mobile compare/Broker table widths adjusted so pinned labels do not hide the start of any data column.

@@ -10,15 +10,19 @@ export class ComparisonError extends Error {
 
 export function compareCells(cells:readonly CoverageCell[]):ComparisonStatus {
   if(cells.some(c=>c.status==="unknown"||c.status==="conflicting"||!c.sourceIds.length))return "insufficient";
+  if(cells.some(c=>c.status==="known"&&typeof c.value==="number"&&!c.unit))return "insufficient";
   if(new Set(cells.map(c=>c.status)).size>1)return cells.some(c=>c.status==="not_applicable")?"not_comparable":"different";
   if(cells[0]?.status==="known"&&(cells.some(c=>!c.basis)||new Set(cells.map(c=>JSON.stringify([c.unit,c.basis,c.inclusion]))).size>1))return "not_comparable";
   const signature=(c:CoverageCell)=>JSON.stringify([c.value,c.status,c.unit,c.basis,c.inclusion,[...c.conditions].sort()]);
   return cells.some(c=>signature(c)!==signature(cells[0]))?"different":"same";
 }
+// Only descriptive metadata can compare without confirming benefit inclusion.
+const productDescriptionFields = new Set(["insurer", "eligibility", "petType", "businessType", "eventType", "sportType", "occupancy"]);
+
 function row(key:string,label:string,cells:CoverageCell[]):ComparisonRow {
  const hasUnknown=cells.some(cell=>cell.status!=="known");
  const scenariosMatch=new Set(cells.map(cell=>JSON.stringify(cell.conditions))).size===1;
- const comparisonStatus=key==="premiumTHB"&&!hasUnknown&&(!scenariosMatch||cells.some(cell=>cell.conditions[0]==="starting"))?"not_comparable":compareCells(cells);
+ const comparisonStatus=key==="premiumTHB"&&!hasUnknown&&(!scenariosMatch||cells.some(cell=>cell.conditions[0]==="starting"))?"not_comparable":key!=="premiumTHB"&&!productDescriptionFields.has(key)&&cells.some(cell=>cell.status==="known"&&cell.inclusion==="unknown")?"insufficient":compareCells(cells);
  return {key,label,cells,comparisonStatus,status:comparisonStatus,unit:new Set(cells.map(c=>c.unit)).size===1?cells[0].unit:null,units:cells.map(c=>c.unit),values:cells.map(c=>c.status==="known"?c.value:null),different:comparisonStatus!=="same"};
 }
 
