@@ -5,7 +5,7 @@ import { formatCoverageCell } from "./display.ts";
 import { getPlan } from "./catalog.ts";
 
 export const differenceSchema=z.object({fieldKey:z.string().max(80),label:z.string().max(200),status:z.enum(["different","not_comparable","insufficient"]),sentence:z.string().max(12000),planIds:z.array(z.string()).min(2).max(3),sourceIds:z.array(z.string()).max(50)}).strict();
-export const assistantOverviewSchema=z.object({customer:customerFactsSchema,retrievedPlanIds:z.array(z.string()).max(40),comparedPlanIds:z.array(z.string()).max(3),differences:z.array(differenceSchema).max(50),sourceMode:z.enum(["live","mock"]),generatedAt:z.string().datetime({offset:true})}).strict();
+export const assistantOverviewSchema=z.object({customer:customerFactsSchema,retrievedPlanIds:z.array(z.string()).max(200),comparedPlanIds:z.array(z.string()).max(3),differences:z.array(differenceSchema).max(50),sourceMode:z.enum(["live","mock"]),generatedAt:z.string().datetime({offset:true})}).strict();
 export type AssistantOverview=z.infer<typeof assistantOverviewSchema>;
 export function buildAssistantOverview(customer:CustomerFacts,retrievedPlanIds:string[],comparedPlanIds:string[],sourceMode:"live"|"mock"):AssistantOverview {
  const differences:AssistantOverview["differences"]=[];

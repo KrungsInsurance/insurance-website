@@ -5,8 +5,30 @@ import { planImages } from "../lib/plan-images.ts";
 import { categoryFields, catalog, getPlan, searchPlans } from "../lib/catalog.ts";
 import { policies } from "../lib/demo-seed.ts";
 import { assertValidCatalog, validatePolicies } from "../lib/validators.ts";
+import { shortCoverage, shortBasis } from "../lib/ui-copy.ts";
+import { planSections } from "../lib/plan-sections.ts";
 
-test("every canonical plan uses a locally available, source-labelled official image", () => {
+test("concise UI values preserve unknowns, units and distinct coverage bases without mutating facts", () => {
+  const plan = getPlan("health-01")!;
+  const before = JSON.stringify(plan);
+  assert.equal(shortCoverage(plan.coverageCells.minEntryAge), "13 ปี");
+  assert.equal(shortCoverage(plan.coverageCells.roomMaxDays), "ยังไม่ได้ระบุ");
+  assert.equal(shortCoverage(plan.coverageCells.annualLimit), "2,500,000 บาท");
+  assert.equal(shortBasis(plan.coverageCells.annualLimit), "ต่อปี");
+  assert.equal(shortBasis(plan.coverageCells.perAdmissionLimit), "ต่อการพักรักษา");
+  assert.equal(shortBasis(plan.coverageCells.minEntryAge), null);
+  assert.equal(JSON.stringify(plan), before);
+});
+
+test("detail sections show every insurance field exactly once for every category", () => {
+  for (const [category, fields] of Object.entries(categoryFields)) {
+    const keys = planSections[category as keyof typeof planSections].flatMap(section => section.keys);
+    assert.equal(new Set(keys).size, keys.length, category);
+    assert.deepEqual([...keys].sort(), fields.map(field => field.key).sort(), category);
+  }
+});
+
+test("every canonical plan uses a local image with an honest source or illustration label", () => {
   for (const plan of catalog) {
     const asset = planImages[plan.id];
     assert.ok(asset, `missing image evidence: ${plan.id}`);
@@ -14,7 +36,7 @@ test("every canonical plan uses a locally available, source-labelled official im
     assert.match(asset.src, /^\/images\/[a-zA-Z0-9/_.-]+$/);
     assert.ok(statSync(new URL(`../public${asset.src}`, import.meta.url)).size > 0);
     assert.equal(new URL(asset.sourceUrl).protocol, "https:");
-    assert.ok(asset.alt && ["product", "insurer"].includes(asset.kind));
+    assert.ok(asset.alt && ["product", "insurer", "illustration"].includes(asset.kind));
   }
 });
 
@@ -36,7 +58,7 @@ test("catalog adds sourced identities without reusing retired fabricated variant
   assertValidCatalog(catalog);
   const ids = new Set(catalog.map((plan) => plan.id));
   assert.equal(ids.size, catalog.length);
-  assert.deepEqual(searchPlans({ category: "property" }).map(p => p.id).sort(), ["property-01", "property-06"]);
+  assert.ok(["property-01", "property-06"].every(id => searchPlans({ category: "property" }).some(plan => plan.id === id)));
   assert.deepEqual(searchPlans({ category: "liability" }).map(p => p.id), ["liability-06", "liability-07"]);
   for (const id of ["property-02", "property-03", "property-04", "property-05", "liability-01", "liability-02", "liability-03", "liability-04", "liability-05"]) assert.equal(getPlan(id), undefined);
   assert.ok(catalog.every((plan) => plan.source.kind === "official" && plan.source.url));

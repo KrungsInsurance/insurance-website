@@ -1,17 +1,74 @@
 import { PlanActions } from "@/components/plan-actions";
 import Link from "@/components/native-link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { categoryFields, getPlan } from "@/lib/catalog";
 import { formatCoverageCell } from "@/lib/display";
-import { TermHelp } from "@/components/term-help";
 import { PlanPrice } from "@/components/plan-price";
+import { planSections } from "@/lib/plan-sections";
+import { shortBasis, shortCoverage, shortFieldLabel } from "@/lib/ui-copy";
+import "@/components/plan-detail.css";
 
 export default async function PlanDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const plan = getPlan(id);
-  if (!plan) return <main className="min-h-screen bg-white px-5 py-10 text-[#1d1d1f] sm:px-8"><div className="mx-auto max-w-2xl rounded-2xl border border-[#e0e0e0] bg-[#f5f5f7] p-8 sm:p-12"><p className="text-sm font-semibold text-[#0066cc]">ไม่พบแผนประกัน</p><h1 className="mt-3 text-3xl font-semibold">ลิงก์นี้อาจหมดอายุหรือไม่มีอยู่</h1><p className="mt-3 text-[#6e6e73]">กลับไปที่ Browse เพื่อเลือกแผนจากรายการที่มี</p><Link href="/browse" prefetch={false} className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#0066cc] px-5 font-medium text-white hover:bg-[#0071e3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3]"><ArrowLeft aria-hidden="true" className="size-4" />กลับ Browse ประกัน</Link></div></main>;
-  return <main className="min-h-screen bg-white text-[#1d1d1f]"><div className="border-b border-[#e0e0e0] bg-[#f5f5f7] px-5 py-2 text-center text-xs text-[#6e6e73] sm:text-sm">โหมดสาธิต · ข้อมูลตัวอย่าง · ใช้เพื่อการนำเสนอเท่านั้น</div><div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-12"><Link href={`/browse?category=${plan.category}`} prefetch={false} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[#0066cc] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0071e3]"><ArrowLeft aria-hidden="true" className="size-4" />กลับรายการแผน</Link><div className="mt-7 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-start"><div className="overflow-hidden rounded-2xl border border-[#e0e0e0] bg-[#f5f5f7]"><img src={plan.image} alt={`ภาพประกอบ ${plan.name}`} className="aspect-[4/3] w-full object-contain" /></div><div><p className="text-sm font-medium text-[#0066cc]">{plan.insurer}</p><h1 className="mt-2 text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">{plan.name}</h1><div className="mt-5 flex items-start gap-1"><PlanPrice price={plan.price} className="text-3xl font-semibold"/><TermHelp fieldKey="price"/></div><p className="mt-2 text-sm text-[#6e6e73]">ตรวจราคาและเงื่อนไขจริงกับผู้ให้บริการก่อนตัดสินใจ</p><PlanActions plan={plan} /></div></div><section className="mt-12" aria-labelledby="coverage-title"><h2 id="coverage-title" className="text-2xl font-semibold">รายละเอียดความคุ้มครอง</h2><div className="mt-5 overflow-hidden rounded-2xl border border-[#e0e0e0]"><dl className="divide-y divide-[#e0e0e0]">{categoryFields[plan.category].map((field) => <div key={field.key} className="grid gap-1 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-5"><dt className="text-sm text-[#6e6e73]">{field.label}<TermHelp fieldKey={field.key}/></dt><dd className="font-medium">{formatCoverageCell(plan.coverageCells[field.key])}{plan.coverageCells[field.key].sourceIds.length>0&&<details className="mt-2 text-xs font-normal text-[#6e6e73]"><summary className="inline-flex min-h-11 cursor-pointer items-center text-[#0066cc]">ที่มาของข้อมูลนี้</summary>{plan.coverageCells[field.key].sourceIds.map(id=>{const source=plan.sources.find(s=>s.id===id);return source?<p key={id}><a href={source.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-[#0066cc] underline">{source.publisher} · {source.locator}</a><span className="block">ตรวจ {source.checkedAt} · วันที่มีผล {source.effectiveAt??"ไม่ได้ระบุ"}</span></p>:null;})}</details>}</dd></div>)}<div className="grid gap-1 bg-[#f5f5f7] px-5 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-5"><dt className="text-sm text-[#6e6e73]">คุณสมบัติผู้สมัคร<TermHelp fieldKey="eligibility"/></dt><dd className="font-medium">{plan.eligibility}</dd></div></dl></div></section><section className="mt-8 rounded-2xl border border-[#e0e0e0] bg-[#f5f5f7] p-5 sm:p-7" aria-labelledby="exclusion-title"><h2 id="exclusion-title" className="text-xl font-semibold">ข้อยกเว้นที่ควรรู้<TermHelp fieldKey="exclusions"/></h2><ul className="mt-3 list-disc space-y-2 pl-5 text-[#6e6e73]">{plan.exclusions.map((item) => <li key={item}>{item}</li>)}</ul></section><p className="mt-6 text-xs text-[#6e6e73]">แหล่งข้อมูล: <a href={plan.source.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-[#0066cc] underline">{plan.source.label}</a> · ตรวจเมื่อ {plan.source.updatedAt}</p></div></main>;
+  if (!plan) return <main className="plan-detail"><div className="plan-detail-shell plan-detail-empty"><h1>ไม่พบแผนนี้</h1><Link href="/browse" prefetch={false} className="action-primary">ค้นหาประกัน</Link></div></main>;
+
+  const fields = categoryFields[plan.category];
+  const detailedFields = fields.filter(field => {
+    const cell = plan.coverageCells[field.key];
+    return cell.status === "known" && (typeof cell.value === "string" || cell.conditions.length > 0) || cell.status === "conflicting" || cell.conditions.length > 0;
+  });
+  const sourceLinks = [...new Map(plan.sources.map(source => [source.url, source])).values()];
+
+  return <main className="plan-detail">
+    <div className="plan-detail-demo">โหมดสาธิต</div>
+    <div className="plan-detail-shell">
+      <Link href={`/browse?category=${plan.category}`} prefetch={false} className="plan-detail-back"><ArrowLeft aria-hidden="true" size={17} />ดูแผนทั้งหมด</Link>
+      <section className="plan-detail-hero" aria-labelledby="plan-title">
+        <div className="plan-detail-art"><img src={plan.image} alt={`ภาพประกอบ ${plan.name}`} /></div>
+        <div className="plan-detail-intro">
+          <p className="plan-detail-insurer">{plan.insurer}</p>
+          <h1 id="plan-title">{plan.name}</h1>
+          {plan.tierLabel && !plan.name.includes(plan.tierLabel) && <p className="plan-detail-tier">{plan.tierLabel}</p>}
+          <div className="plan-detail-price"><PlanPrice price={plan.price} compact className="plan-detail-price-value" /></div>
+          {plan.price.kind === "example" && plan.price.scenario && <p className="plan-detail-price-note">{plan.price.scenario}</p>}
+          <PlanActions plan={plan} />
+        </div>
+      </section>
+
+      <div className="plan-detail-sections">
+        {planSections[plan.category].map((section, index) => <section key={section.title} className="plan-detail-section" aria-labelledby={`coverage-${index}`}>
+          <h2 id={`coverage-${index}`}>{section.title}</h2>
+          <dl className="plan-detail-facts">
+            {section.keys.map(key => {
+              const field = fields.find(item => item.key === key);
+              if (!field) return null;
+              const cell = plan.coverageCells[key];
+              const answer = shortCoverage(cell);
+              const label = shortFieldLabel(key, field.label);
+              const basis = shortBasis(cell);
+              return <div key={key} className="plan-detail-fact">
+                <dt>{label}{basis && !label.includes(basis) && <small className="plan-detail-basis">{basis}</small>}</dt>
+                <dd className={cell.status === "known" ? "" : "plan-detail-unknown"}>
+                  <span className={answer.length > 35 ? "plan-detail-long-value" : undefined}>{answer}</span>
+                  {cell.inclusion === "optional" && cell.status === "known" && <small className="plan-detail-option">ซื้อเพิ่ม</small>}
+                </dd>
+              </div>;
+            })}
+          </dl>
+        </section>)}
+      </div>
+
+      <details className="plan-detail-more">
+        <summary><span>เงื่อนไขและข้อมูลเพิ่มเติม</span><ChevronDown aria-hidden="true" size={20} /></summary>
+        <div className="plan-detail-more-body">
+          {(plan.price.scenario || plan.price.includes) && <section><h3>ราคา</h3>{[plan.price.scenario, plan.price.includes].filter(Boolean).map(text => <p key={text}>{text}</p>)}</section>}
+          <section><h3>คุณสมบัติผู้สมัคร</h3><p>{plan.eligibility}</p></section>
+          {detailedFields.length > 0 && <section><h3>เงื่อนไขความคุ้มครอง</h3><dl className="plan-detail-conditions">{detailedFields.map(field => <div key={field.key}><dt>{shortFieldLabel(field.key, field.label)}</dt><dd>{formatCoverageCell(plan.coverageCells[field.key])}</dd></div>)}</dl></section>}
+          {plan.exclusions.length > 0 && <section><h3>ข้อยกเว้น</h3><ul>{plan.exclusions.map(item => <li key={item}>{item}</li>)}</ul></section>}
+          <section><h3>เอกสารจากบริษัท</h3><ul className="plan-detail-sources">{sourceLinks.map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.publisher} · {source.title}</a></li>)}</ul><p className="plan-detail-checked">ตรวจข้อมูล {plan.source.updatedAt}</p></section>
+        </div>
+      </details>
+    </div>
+  </main>;
 }
-
-
-

@@ -1,0 +1,42 @@
+import type { CoverageCell } from "./types.ts";
+import { formatCoverageValue } from "./display.ts";
+
+const statusLabels = { unknown: "ยังไม่ได้ระบุ", not_covered: "ไม่คุ้มครอง", not_applicable: "ไม่ใช้กับแผนนี้", conflicting: "รอยืนยัน" };
+const conciseValues: Record<string, string> = {
+  "100% ของจำนวนเงินเอาประกันภัย ณ วันเริ่มสัญญา": "100% ของทุนเริ่มต้น",
+  "ตลอดชีพ คุ้มครองถึงอายุ 99 ปี": "ตลอดชีพถึง 99 ปี",
+  "ตลอดชีพพร้อมเงินคืน คุ้มครองถึงอายุ 99 ปี": "ตลอดชีพ + เงินคืนถึง 99 ปี",
+  "รายปีในตัวอย่างเบี้ย": "รายปี (ตัวอย่าง)",
+  "รายปีตามตารางแผน": "รายปี",
+  "การเจ็บป่วยรอ 60 วันในการเริ่มคุ้มครองครั้งแรก": "60 วัน (เจ็บป่วยครั้งแรก)",
+  "มีความรับผิดต่อบุคคลภายนอกตามแผน": "บุคคลภายนอกตามแผน",
+  "อุบัติเหตุและการเจ็บป่วยตามแผน": "อุบัติเหตุ + เจ็บป่วยตามแผน",
+  "ประกันเฉพาะโรคมะเร็งตามคำนิยามกรมธรรม์": "มะเร็งตามกรมธรรม์",
+  "เงินก้อนเมื่อได้รับการวินิจฉัยที่เข้าเงื่อนไข": "เงินก้อนตามเงื่อนไข",
+  "เงินก้อนตามทุนที่เลือก เมื่อพบโรคที่เข้าเงื่อนไข": "เงินก้อนตามเงื่อนไข",
+  "มี 6 กลุ่มโรคให้เลือกตามเงื่อนไขโครงการ": "6 กลุ่มโรคตามเงื่อนไข",
+  "ผู้จัดงานอีเวนต์ การประชุมและสัมมนา": "อีเวนต์ · ประชุม · สัมมนา",
+  "สามารถขยายถึงกำไรที่ลดลงจากการหยุดชะงักของงาน": "กำไรลดลง (ขยายเพิ่ม)",
+  "ประกันสำหรับผู้เล่นกอล์ฟ": "กอล์ฟ",
+  "สนามกอล์ฟหรือสนามฝึกซ้อมในประเทศไทย": "สนามกอล์ฟ/ฝึกซ้อมในไทย",
+};
+// A presentation value only. Full conditions and source evidence stay on the plan.
+export function shortCoverage(cell: CoverageCell): string {
+  if (cell.status !== "known") return statusLabels[cell.status];
+  if (typeof cell.value === "string") {
+    if (conciseValues[cell.value]) return conciseValues[cell.value];
+    if (cell.value.length > 48) return "ตามเงื่อนไข";
+  }
+  return formatCoverageValue(cell.value, cell.unit);
+}
+const basisLabels: Record<string, string> = {
+  per_delay_interval:"ต่อช่วงล่าช้า",delay_interval:"ต่อช่วงล่าช้า",single_trip_max:"ต่อทริปสูงสุด",death_per_accident:"เสียชีวิตจากอุบัติเหตุ",public_accident_death_total:"รวมอุบัติเหตุสาธารณะ",selected_vehicle_sum:"ทุนรถที่เลือก",policy_term:"ต่อสัญญา",selected_trip_duration:"ตามทริปที่เลือก",selected_deductible:"ส่วนแรกที่เลือก",
+  per_year:"ต่อปี",per_policy_year:"ต่อปี",per_disease:"ต่อโรค",per_admission:"ต่อการพักรักษา",per_admission_shared_room_icu:"ต่อการพักรักษา · รวมห้อง/ICU",per_day:"ต่อวัน",per_occurrence:"ต่อเหตุ",per_claim:"ต่อการเคลม",per_accident:"ต่ออุบัติเหตุ",per_trip:"ต่อทริป",per_person:"ต่อคน",per_visit:"ต่อครั้ง",shared_cap:"วงเงินรวม",shared_building_contents:"รวมบ้านและของ",policy_limit:"ต่อกรมธรรม์",per_accident_lump_sum:"เงินก้อน/อุบัติเหตุ",per_insured_driver_passenger:"ต่อผู้ขับขี่/ผู้โดยสาร",per_person_scope_unconfirmed:"ต่อคน · รอยืนยันขอบเขต",per_occurrence_scope_unconfirmed:"ต่อเหตุ · รอยืนยันขอบเขต",
+};
+export function shortBasis(cell: CoverageCell): string | null {
+  return cell.status === "known" ? basisLabels[cell.basis ?? ""] ?? null : null;
+}
+const fieldLabels: Record<string, string> = {
+  annualLimit:"วงเงินต่อปี",perDiseaseLimit:"วงเงินต่อโรค",perAdmissionLimit:"วงเงินต่อการพักรักษา",roomPerDay:"ค่าห้องต่อวัน",icuPerDay:"ICU ต่อวัน",roomMaxDays:"ค่าห้องสูงสุด",icuMaxDays:"ICU สูงสุด",opdPerYear:"OPD ต่อปี",opdPerVisit:"OPD ต่อครั้ง",opdVisitsPerDay:"พบแพทย์ต่อวัน",deductible:"ส่วนแรก",copay:"ร่วมจ่าย",waitingDays:"ระยะรอคอย",renewalAge:"ต่ออายุถึง",minEntryAge:"อายุเริ่มสมัคร",maxEntryAge:"อายุสูงสุด",coverageUntilAge:"คุ้มครองถึง",coverageYears:"ระยะคุ้มครอง",paymentYears:"ระยะจ่ายเบี้ย",deathFormula:"เมื่อเสียชีวิต",maturityFormula:"เมื่อครบสัญญา",guaranteedCashback:"เงินคืน",nonGuaranteedBenefit:"ผลตอบแทนไม่รับประกัน",thirdPartyBodilyPerPerson:"คู่กรณีต่อคน",thirdPartyBodilyPerEvent:"คู่กรณีต่อเหตุ",thirdPartyProperty:"ทรัพย์สินคู่กรณี",voluntaryMedicalPerPerson:"ค่ารักษาสมัครใจ",medicalPerPerson:"ค่ารักษา พ.ร.บ.",hospitalAdmissionBenefit:"เงินก้อนนอน รพ.",medicalPerAccident:"ค่ารักษาต่ออุบัติเหตุ",disabilityBenefit:"ทุพพลภาพ",deathBenefit:"เสียชีวิต",dailyAllowance:"ชดเชยต่อวัน",dailyMaxDays:"ชดเชยสูงสุด",combinedPropertyLimit:"ทุนบ้านและของ",sharedNaturalPerilsLimit:"วงเงินภัยธรรมชาติ",bundledLiability:"ความรับผิดพ่วง",occupancy:"ประเภทที่พัก",valuation:"การประเมินมูลค่า",eligibilityConditions:"การสมัคร",petType:"สัตว์ที่รับ",treatmentScope:"การรักษา",petLiability:"ความรับผิด",benefitLimit:"วงเงิน",waitingPeriod:"ระยะรอคอย",petEligibility:"คุณสมบัติสัตว์",coveredConditions:"โรคที่คุ้มครอง",benefitType:"ผลประโยชน์",basePolicy:"สัญญาหลัก",coveredActivity:"ขอบเขต",responseCosts:"ค่าแก้ไขเหตุ",businessInterruption:"ธุรกิจหยุดชะงัก",thirdPartyLiability:"ความรับผิด",businessType:"ประเภทกิจการ",territory:"พื้นที่คุ้มครอง",eventType:"ประเภทงาน",cancellationScope:"ยกเลิกงาน",lossOfProfit:"กำไรที่สูญเสีย",weddingEligibility:"รับงานแต่งไหม",sportType:"ชนิดกีฬา",accidentScope:"อุบัติเหตุ",equipmentScope:"อุปกรณ์กีฬา",
+};
+export function shortFieldLabel(key: string, fallback: string): string { return fieldLabels[key] ?? fallback; }

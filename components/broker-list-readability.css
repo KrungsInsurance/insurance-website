@@ -1,0 +1,63 @@
+.broker-list-page { letter-spacing: 0; }
+.broker-list-page .broker-container { padding-top: 24px; }
+.broker-list-page .broker-demo-strip,
+.broker-list-page .broker-eyebrow,
+.broker-list-page .broker-demo-count { font-size: 14px; line-height: 1.65; }
+.broker-list-page .broker-back { font-size: 16px; font-weight: 400; }
+.broker-list-page .broker-page-heading { margin: 36px 0 40px; }
+.broker-list-page .broker-page-heading h1 { font-size: clamp(32px, 4.5vw, 52px); line-height: 1.4; }
+.broker-list-page .broker-page-heading p:not(.broker-eyebrow) { font-size: 18px; line-height: 1.7; margin-top: 12px; }
+.broker-list-page .broker-total strong { font-size: 64px; font-weight: 600; line-height: 1.2; }
+.broker-list-page .broker-total span { font-size: 15px; }
+.broker-list-page .broker-metrics { margin: 0 0 40px; }
+.broker-list-page .broker-metric { min-height: 130px; border-radius: 18px; gap: 4px 10px; }
+.broker-list-page .broker-metric > span:not(.broker-status-dot) { font-size: 16px; line-height: 1.6; }
+.broker-list-page .broker-metric strong { font-size: 40px; font-weight: 600; line-height: 1.3; }
+.broker-list-page .broker-metric[aria-pressed=true] { outline: 2px solid var(--primary); outline-offset: -2px; box-shadow: none; }
+.broker-list-page .broker-metric:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 3px; }
+.broker-list-page .broker-requests { border-radius: 18px; }
+.broker-list-page .broker-list-heading { padding: 28px 28px 0; flex-wrap: wrap; }
+.broker-list-page .broker-list-heading h2 { font-size: 28px; line-height: 1.5; }
+.broker-list-page .broker-list-heading p,
+.broker-list-page .broker-result-count { font-size: 14px; line-height: 1.65; }
+.broker-list-page .broker-filter-bar { padding: 24px 28px; }
+.broker-list-page .broker-search { min-width: 0; border-radius: 999px; padding-inline: 18px; }
+.broker-list-page .broker-search svg { flex: none; }
+.broker-list-page .broker-search input,
+.broker-list-page .broker-status-select select { min-height: 52px; font-size: 16px; }
+.broker-list-page .broker-request { padding: 28px; gap: 20px; align-items: flex-start; }
+.broker-list-page .broker-request:last-child { border-radius: 0 0 18px 18px; }
+.broker-list-page .broker-request-avatar { width: 48px; height: 48px; font-size: 20px; }
+.broker-list-page .broker-request-title { gap: 10px 14px; }
+.broker-list-page .broker-request-title h3 { font-size: 23px; line-height: 1.6; margin: 0; }
+.broker-list-page .broker-status { font-size: 14px; font-weight: 600; line-height: 1.6; }
+.broker-list-page .broker-request-body .broker-request-plans { font-size: 18px; line-height: 1.75; margin-top: 10px; }
+.broker-list-page .broker-request-body .broker-request-concern { font-size: 16px; line-height: 1.75; margin-top: 4px; overflow-wrap: anywhere; }
+.broker-list-page .broker-request-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 16px; color: #515154; font-size: 14px; line-height: 1.7; }
+.broker-list-page .broker-sample-label { font-size: 13px; }
+.broker-list-page .broker-request-end { min-height: 44px; gap: 6px; font-size: 16px; color: var(--primary); align-self: center; }
+.broker-list-page .broker-empty h3 { font-size: 24px; line-height: 1.6; }
+.broker-list-page .broker-empty p,
+.broker-list-page .broker-secondary { font-size: 17px; }
+
+@media (max-width: 600px) {
+  .broker-list-page .broker-container { padding: 16px 16px 48px; }
+  .broker-list-page .broker-page-heading { margin: 28px 0; }
+  .broker-list-page .broker-page-heading p:not(.broker-eyebrow) { font-size: 17px; }
+  .broker-list-page .broker-total { display: flex; flex-direction: row; align-items: baseline; gap: 10px; padding: 0; margin-top: 20px; }
+  .broker-list-page .broker-total strong { font-size: 40px; }
+  .broker-list-page .broker-metrics { margin-bottom: 28px; }
+  .broker-list-page .broker-metric { min-height: 116px; padding: 16px 12px; }
+  .broker-list-page .broker-metric > span:not(.broker-status-dot) { font-size: 15px; }
+  .broker-list-page .broker-metric strong { font-size: 36px; }
+  .broker-list-page .broker-list-heading { padding: 20px 18px 0; gap: 8px; }
+  .broker-list-page .broker-list-heading h2 { font-size: 26px; }
+  .broker-list-page .broker-filter-bar { padding: 18px; }
+  .broker-list-page .broker-search { flex-basis: 100%; }
+  .broker-list-page .broker-request { flex-wrap: wrap; padding: 24px 18px; gap: 14px; }
+  .broker-list-page .broker-request-body { flex-basis: 100%; }
+  .broker-list-page .broker-request-title { align-items: flex-start; gap: 8px; }
+  .broker-list-page .broker-request-title h3 { flex-basis: 100%; font-size: 22px; }
+  .broker-list-page .broker-request-meta { gap: 6px 14px; }
+  .broker-list-page .broker-request-end { margin-left: auto; }
+}

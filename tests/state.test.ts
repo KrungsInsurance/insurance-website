@@ -1,6 +1,8 @@
+import { createBrokerDemoLeads } from "../lib/broker-demo.ts";
+import type { DiscoveryPersona } from "../lib/discovery-persona.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { initialDemoState, makeSummary, safeLoad, readDemoStorage, writeDemoStorage, clearDemoStorage, STORAGE_KEY, chatRequestBody } from "../lib/demo-state.ts";
+import { initialDemoState, startDiscoveryState, makeSummary, safeLoad, readDemoStorage, writeDemoStorage, clearDemoStorage, STORAGE_KEY, chatRequestBody, chatContinuation } from "../lib/demo-state.ts";
 import { getPlan } from "../lib/catalog.ts";
 
 test("demo state seeds policies and survives a valid envelope", () => {
@@ -29,10 +31,16 @@ test("corrupt nested state and unknown plans are rejected",()=>{const state=init
 test("restore validates compatible groups and duplicates in all current selection lists",()=>{
  for(const key of ["selection","comparedPlanIds","interestedPlanIds"] as const){const state=initialDemoState();state[key]=["travel-01","travel-03"];assert.equal(safeLoad(JSON.stringify(state)),null);state[key]=["health-01","health-01"];assert.equal(safeLoad(JSON.stringify(state)),null);state[key]=["health-01","health-02"];assert.ok(safeLoad(JSON.stringify(state)));}
 });
-test("rolling chat preserves newest text while limiting UTF-8 and escaped JSON bytes",()=>{
- const context={category:"health" as const,selectedPlanIds:["health-01"],budgetTHB:20000,goals:["ก".repeat(200)]};
- for(const text of ["ก".repeat(1900),"\u0000".repeat(1900)]){const history=Array.from({length:12},(_,i)=>({role:i%2?"user" as const:"assistant" as const,content:`${i}${text}`}));const body=chatRequestBody(history,context),parsed=JSON.parse(body);assert.ok(new TextEncoder().encode(body).byteLength<=32768);assert.ok(parsed.messages.length<12);assert.equal(parsed.messages.at(-1).content,history.at(-1)!.content);assert.deepEqual(parsed.context,context);}
+test("full chat history and persona survive reload and request projection without dropping earlier turns",()=>{
+ const context={category:"health" as const,selectedPlanIds:["health-01"],budgetTHB:null,goals:[],persona:{nickname:"ทดสอบ",ageBand:"31-45" as const,category:"health" as const,priorities:["opd"],journey:"ask" as const,gender:"female" as const,budgetBand:"10000-19999" as const}};
+ const history=Array.from({length:30},(_,i)=>({role:i%2?"user" as const:"assistant" as const,content:`ข้อความ ${i} ${"ก".repeat(600)}`}));
+ const state=initialDemoState();state.messages=history;state.persona=context.persona;
+ assert.deepEqual(safeLoad(JSON.stringify(state))?.messages.map(message=>message.content),history.map(message=>message.content));
+ const body=JSON.parse(chatRequestBody(history,context));assert.equal(body.messages.length,30);assert.equal(body.messages[0].content,history[0].content);assert.deepEqual(body.context.persona,context.persona);
+ assert.throws(()=>chatRequestBody(Array.from({length:201},()=>({role:"user",content:"เก็บไว้"})),context),/ขีดจำกัด/);
+ assert.throws(()=>chatRequestBody(Array.from({length:100},()=>({role:"user",content:"ก".repeat(2000)})),context),/ขีดจำกัด/);
 });
+
 test("summary IDs remain stable after selection mutation",()=>{const state=initialDemoState();state.comparedPlanIds=["health-01"];const summary=makeSummary(state);state.comparedPlanIds.push("health-02");assert.deepEqual(summary?.comparedPlanIds,["health-01"]);});
 test("explicit interest can be summarized without an activity score or budget", () => {
  const state=initialDemoState();state.interestedPlanIds=["health-01"];state.profile.budgetTHB=null;
@@ -89,4 +97,28 @@ test("legacy card without snapshot remains a readable unavailable reference",()=
  const restored=safeLoad(JSON.stringify(state));assert.ok(restored);assert.equal(restored.leads[0].transcript[0].cards?.[0].type,"plans");assert.equal(restored.leads[0].planFacts,undefined);
  state.leads[0].transcript[0].cards=[{type:"plans",planIds:["https://bad.test"],fieldKeys:["annualLimit"]}];assert.deepEqual(safeLoad(JSON.stringify(state))?.leads[0].transcript[0].cards,[]);
  state.leads[0].transcript[0].cards=[{type:"plans",planIds:["health-99"],fieldKeys:["__proto__"]}];assert.deepEqual(safeLoad(JSON.stringify(state))?.leads[0].transcript[0].cards,[]);
+});
+
+
+test("starting a new persona resets only discovery context and preserves broker cases",()=>{
+ const prior=initialDemoState();prior.leads=createBrokerDemoLeads();prior.messages=[{role:"user",content:"ข้อมูลการค้นหารอบเดิม"}];prior.selection=["motor-01"];prior.profile.budgetTHB=20000;
+ const persona:DiscoveryPersona={nickname:"ต้น",ageBand:"21-30",category:"health",priorities:["room","opd"],journey:"compare"};
+ const state=startDiscoveryState(prior,persona);assert.equal(state.profile.displayName,"ต้น");assert.equal(state.profile.budgetTHB,null);assert.equal(state.profile.preferredCategory,"health");assert.equal(state.selection.length,3);assert.ok(state.selection.every(id=>id.startsWith("health-")));assert.deepEqual(state.messages,[]);assert.deepEqual(state.comparedPlanIds,[]);assert.deepEqual(state.interestedPlanIds,[]);assert.deepEqual(state.leads,prior.leads);assert.deepEqual(state.policies,prior.policies);
+ assert.deepEqual(safeLoad(JSON.stringify(state))?.persona,persona);
+ const ask=startDiscoveryState(state,{...persona,journey:"ask"});assert.deepEqual(ask.selection,[]);assert.equal(ask.leads.length,prior.leads.length);
+ const corrupted=safeLoad(JSON.stringify({...state,persona:{...persona,priorities:["unknown"]}}));assert.ok(corrupted);assert.equal(corrupted.persona,undefined);assert.equal(corrupted.leads.length,prior.leads.length);
+});
+
+
+test("compare and category actions retain conversation memory; only a new persona resets it",()=>{
+ const state=initialDemoState();state.profile.preferredCategory="health";
+ state.messages=[{role:"user",content:"เรียกเราว่า มิน มีประกันสังคมอยู่แล้ว"},{role:"assistant",content:"มีสามแผนให้ดู",cards:[{type:"plans",planIds:["health-01","health-02","health-03"],fieldKeys:[]}]}];
+ const compare=chatContinuation(state,{profile:state.profile});
+ assert.equal(compare.resetHistory,false);assert.deepEqual(compare.messages,state.messages);assert.deepEqual(compare.lastShownPlanIds,["health-01","health-02","health-03"]);
+ const changed=chatContinuation(state,{profile:{...state.profile,preferredCategory:"pet"}});
+ assert.deepEqual(changed.messages,state.messages);assert.deepEqual(changed.lastShownPlanIds,[]);
+ const persona:DiscoveryPersona={nickname:"ใหม่",ageBand:"21-30",category:"health",priorities:["opd"],journey:"ask"};
+ assert.deepEqual(chatContinuation(state,{profile:state.profile,persona}),{resetHistory:true,messages:[],customerFacts:undefined,lastShownPlanIds:undefined});
+ const body=JSON.parse(chatRequestBody([...compare.messages,{role:"user",content:"เทียบสามตัวนี้"}],{category:"health",selectedPlanIds:["health-01","health-02","health-03"],budgetTHB:null,goals:[]}));
+ assert.equal(body.messages[0].content,state.messages[0].content);
 });

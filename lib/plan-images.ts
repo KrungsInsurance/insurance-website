@@ -1,7 +1,9 @@
+import { catalogExpansionRecords } from "./catalog-expansion.ts";
 // Official product imagery; provenance and fallback limitations: research-plan-images.md
 import { planImagesHealthLife } from "./plan-images-health-life.ts";
-export const planImages: Record<string, {src:string;alt:string;sourceUrl:string;kind:"product"|"insurer"}> = {
+export const planImages: Record<string, {src:string;alt:string;sourceUrl:string;kind:"product"|"insurer"|"illustration"}> = {
   ...planImagesHealthLife,
+  ...Object.fromEntries(catalogExpansionRecords.map(record => [record.id, {src:"/images/plan-placeholder.svg", alt:"ภาพประกอบหมวดประกัน ไม่ใช่ภาพผลิตภัณฑ์จากบริษัท", sourceUrl:record.url, kind:"illustration" as const}])),
   "health-07": {src:"/images/products/allianz-official.jpg",alt:"ตรากลุ่ม Allianz (ใช้แทนภาพผลิตภัณฑ์)",sourceUrl:"https://github.com/allianz",kind:"insurer"},
   "property-06": {src:"/images/products/allianz-official.jpg",alt:"ตรากลุ่ม Allianz (ใช้แทนภาพผลิตภัณฑ์)",sourceUrl:"https://github.com/allianz",kind:"insurer"},
   "motor-01": {

@@ -8,6 +8,12 @@ export const categories = [
   "travel",
   "property",
   "liability",
+  "pet",
+  "critical-illness",
+  "cyber",
+  "business",
+  "event",
+  "sports",
 ] as const;
 
 export type Category = (typeof categories)[number];
@@ -49,6 +55,7 @@ export type Plan = {
   id: string;
   category: Category;
   subtype?: "compulsory" | "voluntary" | "inbound" | "outbound" | "domestic";
+  comparisonGroup?: string;
   productId: string;
   tierLabel: string | null;
   edition: string | null;
@@ -115,5 +122,5 @@ export type CustomerSummary = {
 
 export type LeadStatus = "new" | "contacting" | "follow_up" | "closed";
 export type LeadCall = { id: string; startedAt: string; endedAt: string | null; outcome: "interested" | "follow_up" | "not_interested" | null; note: string };
-export type Lead = { planFacts?: Plan[]; id: string; customerId: "demo-customer"; displayName: string; status: LeadStatus; createdAt: string; updatedAt: string; consentAt: string; contactWindow: CustomerProfile["contactWindow"]; summary: CustomerSummary; transcript: { role: "user" | "assistant"; content: string; mode?: "live" | "mock"; cards?: ChatCard[] }[]; interestScore?: number; notes: string; calls: LeadCall[] };
-
+export type BrokerMessage = { id: string; role: "broker" | "customer"; content: string; createdAt: string; sourceMode?: "live" | "mock" };
+export type Lead = { demoCaseId?: string; demoContact?: "line" | "phone" | "email"; brokerMessages?: BrokerMessage[]; planFacts?: Plan[]; id: string; customerId: "demo-customer"; displayName: string; status: LeadStatus; createdAt: string; updatedAt: string; consentAt: string; contactWindow: CustomerProfile["contactWindow"]; summary: CustomerSummary; transcript: { role: "user" | "assistant"; content: string; mode?: "live" | "mock"; cards?: ChatCard[] }[]; interestScore?: number; notes: string; calls: LeadCall[] };

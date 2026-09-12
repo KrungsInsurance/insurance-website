@@ -85,3 +85,77 @@ test("Compare explicit URL selection accepts zero to three independently from hi
   assert.equal(parseCompareSelection("travel", "travel-01,travel-03"), null);
   assert.deepEqual(parseCompareSelection("travel", "travel-03"), ["travel-03"]);
 });
+
+import { compactCoverage, compactPrice, compareInterests, planInterestReasons } from "../lib/compare-personalization.ts";
+import { emptyCustomerFacts } from "../lib/customer-extraction.ts";
+import type { DiscoveryPersona } from "../lib/discovery-persona.ts";
+const comparePersona:DiscoveryPersona={nickname:"ทดสอบ",ageBand:"21-30",category:"health",priorities:["room","opd"],journey:"compare",budgetBand:"under-10000"};
+
+test("compact comparison keeps numeric basis, optional cover and unknown distinct",()=>{
+ const base=getPlan("health-01")!.coverageCells.annualLimit;
+ assert.match(compactCoverage(base),/2,500,000 บาท\/ปี/);
+ assert.match(compactCoverage({...base,inclusion:"optional"}),/^ซื้อเพิ่ม/);
+ assert.equal(compactCoverage({...base,status:"unknown",value:null}),"รอยืนยัน");
+ assert.equal(compactCoverage({...base,status:"not_covered",value:null}),"ไม่คุ้มครอง");
+ assert.match(compactCoverage({...base,basis:"per_disease"}),/\/โรค/);
+ assert.equal(compactPrice(getPlan("property-01")!.price),"ขอใบเสนอราคา");
+});
+
+test("personalized reasons use selected interests, never budget affordability or unknown cover as fit",()=>{
+ const interests=compareInterests("health",comparePersona,undefined,[]);
+ assert.deepEqual(interests.map(item=>item.id),["room","opd"]);
+ assert.ok(interests.every(item=>item.quote===null));
+ const plan=getPlan("health-01")!;
+ const modified={...plan,coverageCells:{...plan.coverageCells,opdPerYear:{...plan.coverageCells.opdPerYear,status:"unknown" as const,value:null},opdPerVisit:{...plan.coverageCells.opdPerVisit,status:"unknown" as const,value:null}}};
+ const reasons=planInterestReasons(modified,interests);
+ assert.equal(reasons.find(reason=>reason.interest.id==="opd")?.kind,"check");
+ assert.doesNotMatch(JSON.stringify(reasons),/จ่ายไหว|อยู่ในงบ|10000|เหมาะที่สุด/);
+ assert.deepEqual(compareInterests("motor",comparePersona,undefined,[]),[]);
+});
+
+test("chat personalization requires supported positive need, excludes questions and latest withdrawal",()=>{
+ const customer={...emptyCustomerFacts(),category:"health" as const,needs:[{text:"OPD",quote:"อยากได้ OPD"}]};
+ assert.equal(compareInterests("health",undefined,customer,[]).length,0);
+ const messages=[{role:"user",content:"อยากได้ OPD"}];
+ assert.equal(compareInterests("health",undefined,customer,messages)[0]?.quote,"อยากได้ OPD");
+ assert.equal(compareInterests("health",undefined,customer,[...messages,{role:"user",content:"ตอนนี้ไม่ต้องการ OPD แล้ว"}]).length,0);
+ assert.equal(compareInterests("health",{...comparePersona,priorities:["opd"]},customer,[...messages,{role:"user",content:"ไม่สนใจ OPD"}]).length,0);
+ const onlyQuestion={...emptyCustomerFacts(),category:"health" as const,questions:[{text:"OPD",quote:"OPD คืออะไร"}]};
+ assert.equal(compareInterests("health",undefined,onlyQuestion,[{role:"user",content:"OPD คืออะไร"}]).length,0);
+});
+
+test("optional and unverified inclusion remain checks rather than fit reasons",()=>{
+ const plan=getPlan("health-01")!;
+ const interests=compareInterests("health",{...comparePersona,priorities:["room"]},undefined,[]);
+ for(const inclusion of ["optional","unknown"] as const){
+  const modified={...plan,coverageCells:{...plan.coverageCells,roomPerDay:{...plan.coverageCells.roomPerDay,inclusion},roomBasis:{...plan.coverageCells.roomBasis,inclusion}}};
+  const reason=planInterestReasons(modified,interests)[0];
+  assert.equal(reason.kind,"check");
+  assert.match(reason.summary,inclusion==="optional"?/ซื้อเพิ่ม/:/รอยืนยันสิทธิ/);
+ }
+});
+
+test("outpatient requests never produce an inpatient personalization reason",()=>{
+ for(const quote of ["อยากพบแพทย์แบบไม่นอนโรงพยาบาล","ต้องการค่ารักษาผู้ป่วยนอก"]){
+  const customer={...emptyCustomerFacts(),category:"health" as const,needs:[{text:quote,quote}]};
+  const interests=compareInterests("health",undefined,customer,[{role:"user",content:quote}]);
+  assert.deepEqual(interests.map(item=>item.id),["opd"]);
+ }
+});
+
+import { compareBudget } from "../lib/compare-personalization.ts";
+test("comparison budget preserves a stated annual range without treating it as an exact amount",()=>{
+ const quote="เงินที่อยากใช้กับประกันต่อปี: 10,000–19,999 บาท (ช่วงงบประมาณ)";
+ const customer={...emptyCustomerFacts(),category:"health" as const,budget:{quote,amountTHB:null,period:"year" as const}};
+ assert.deepEqual(compareBudget("health",comparePersona,customer,[{role:"user",content:quote}]),{label:"10,000–19,999 บาท/ปี",quote});
+ const changed="ตอนนี้ยังไม่กำหนดงบแล้ว";
+ assert.equal(compareBudget("health",comparePersona,{...customer,budget:{...customer.budget,quote:changed}},[{role:"user",content:quote},{role:"user",content:changed}])?.label,"ยังไม่กำหนดงบ");
+ assert.equal(compareBudget("motor",comparePersona,customer,[{role:"user",content:quote}]),undefined);
+});
+
+test("compact prices keep starting and example qualifiers outside their disclosure",()=>{
+ const price=getPlan("health-01")!.price;
+ assert.match(compactPrice({...price,kind:"starting",scenario:"รายละเอียดสมมติยาว",includes:"ข้อมูลประกอบ"}),/^เริ่มต้น /);
+ assert.match(compactPrice({...price,kind:"example"}),/^ตัวอย่าง /);
+ assert.doesNotMatch(compactPrice({...price,scenario:"รายละเอียดสมมติยาว"}),/รายละเอียดสมมติ/);
+});

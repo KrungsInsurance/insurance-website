@@ -25,6 +25,7 @@ function row(key:string,label:string,cells:CoverageCell[]):ComparisonRow {
 export function arePlansCompatible(plans: readonly Plan[]): boolean {
   if (!plans.length) return true;
   if (plans.some(plan => plan.category !== plans[0].category)) return false;
+  if (new Set(plans.map(plan => plan.comparisonGroup ?? plan.category)).size > 1) return false;
   return !["motor", "travel"].includes(plans[0].category) || (plans.every(plan => Boolean(plan.subtype)) && new Set(plans.map(plan => plan.subtype)).size === 1);
 }
 

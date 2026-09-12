@@ -6,3 +6,19 @@
 .purchase-steps a{min-height:44px;display:inline-flex;align-items:center}
 .home-page .home-promotions .promotion-image{height:180px}
 @media(max-width:640px){.home-page .purchase-steps{grid-template-columns:1fr;gap:24px}.purchase-steps h3{font-size:19px}.purchase-steps li{gap:16px}}
+
+/* Clear headings and one dominant answer per card. */
+.home-page :is(h1,h2,h3){letter-spacing:0;line-height:1.4}
+.home-page .draft-hero h1{font-size:clamp(40px,4.5vw,64px);line-height:1.35}
+.home-page .section-heading h2{font-size:clamp(32px,3vw,44px);font-weight:600}
+.home-page .promotion-body h3{font-size:26px;margin-top:8px}
+.home-page .promotion-body .promotion-value-label{font-size:15px;margin-top:24px;margin-bottom:0;color:#515154}
+.home-page .promotion-body .promotion-value{font-size:64px;line-height:1.15;font-weight:600;color:#1d1d1f;margin-top:4px;font-variant-numeric:tabular-nums}
+.home-page .promotion-dates{margin-top:18px;font-size:14px}
+.home-page .promotion-conditions summary,.home-guide-reference summary{min-height:44px;align-content:center;color:#0066cc;cursor:pointer}
+.home-page .promotion-conditions p{font-size:15px;line-height:1.8;margin-top:12px}
+.home-guide-reference{margin-bottom:24px;font-size:15px}
+.home-guide-reference a{display:inline-flex;align-items:center;min-height:44px;color:#0066cc}
+.home-page .purchase-steps h3{font-size:26px}
+.home-page .purchase-number{font-size:36px;color:#86868b}
+@media(max-width:640px){.home-page .promotion-body .promotion-value{font-size:56px}.home-page .purchase-steps h3{font-size:23px}.home-page .promotion-body h3{font-size:24px}}

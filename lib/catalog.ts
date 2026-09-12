@@ -1,7 +1,9 @@
+import { additionalCategoryFields, buildCatalogExpansion } from "./catalog-expansion.ts";
 import type { Category, CoverageCell, CoverageValue, Field, Plan, PlanSort, PremiumPeriod, Price, SourceEvidence } from "./types.ts";
 import { planImages } from "./plan-images.ts";
 
 export const categoryFields: Record<Category, readonly Field[]> = {
+  ...additionalCategoryFields,
   health: [
     { key: "annualLimit", label: "วงเงินต่อปี", unit: "บาท/ปี" },
     { key: "perDiseaseLimit", label: "วงเงินต่อโรค", unit: "บาท" },
@@ -364,7 +366,7 @@ for(const seed of expandedSeeds){
  }
  if(seed.id==="life-07")seed.extraSources=[{url:pruConditions,locator:"หน้า 1 / เงื่อนไขการรับประกัน ข้อ 1,3–8"}];
 }
-export const catalog:Plan[]=[...seeds,...expandedSeeds].map(buildPlan);
+export const catalog:Plan[]=[...[...seeds,...expandedSeeds].map(buildPlan), ...buildCatalogExpansion(categoryFields)];
 export type SearchOptions={category?:Category;q?:string;maxPremium?:number;premiumPeriod?:Plan["premiumPeriod"];sort?:PlanSort};
 export function searchPlans({category="health",q="",maxPremium,premiumPeriod,sort="price-asc"}:SearchOptions={}):Plan[]{
   const query=q.trim().toLocaleLowerCase("th-TH");const budget=Number.isFinite(maxPremium)&&(maxPremium??-1)>=0?maxPremium:undefined;

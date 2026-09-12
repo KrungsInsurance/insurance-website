@@ -1,0 +1,32 @@
+.browse-page .catalog-intro{padding-top:56px;padding-bottom:36px}
+.browse-page .catalog-intro h1{font-size:clamp(40px,4vw,56px);line-height:1.4}
+.browse-page .catalog-intro header p{font-size:20px;color:#6e6e73;font-weight:400}
+.browse-page .catalog-surface{padding-top:48px}
+.browse-page .catalog-heading{margin-top:48px;align-items:center}
+.browse-page .catalog-heading h2{font-size:36px;line-height:1.5}
+.browse-page .catalog-heading>p{margin:0;font-size:17px}
+.browse-page .catalog-heading>p strong{font-size:28px;color:#1d1d1f;font-weight:600}
+.browse-page .catalog-company{font-size:14px;line-height:1.6}
+.browse-page .catalog-card h3{font-size:25px;line-height:1.5;margin-top:8px;text-wrap:pretty}
+.browse-page .catalog-price{font-size:27px;line-height:1.5;margin-top:18px;font-weight:600}
+.browse-page .catalog-art{padding:24px 24px 0}
+.browse-page .catalog-art img{height:180px}
+.browse-page .catalog-card-body{padding:26px;min-width:0}
+.browse-page .plan-tradeoffs-compact{margin:24px 0 0;gap:18px}
+.browse-page .plan-tradeoffs-compact dl{display:grid;gap:18px;margin:0}
+.browse-page .plan-tradeoffs-compact dt{font-size:13px;line-height:1.65;color:#6e6e73}
+.browse-page .plan-tradeoffs-compact dd{font-size:21px;line-height:1.6;font-weight:600;margin:2px 0 0;overflow-wrap:anywhere}
+.browse-page .tradeoff-basis{display:block;font-weight:400;font-size:12px;line-height:1.6;color:#6e6e73}
+.browse-page .plan-tradeoffs-compact ul{list-style:none;padding:14px 0 0;border-top:1px solid #eee;font-size:13px}
+.browse-page .plan-tradeoffs-compact li{display:flex;justify-content:space-between;gap:12px;line-height:1.7}
+.browse-page .plan-tradeoffs-compact li span{color:#6e6e73}
+.browse-page .plan-tradeoffs-compact li strong{font-weight:500;flex-shrink:0}
+.browse-page .catalog-card-actions .action-primary,.browse-page .catalog-card-actions label{font-size:14px}
+.browse-page .catalog-extra{font-size:14px;line-height:1.8;margin-top:18px}
+.browse-page .catalog-extra p{margin:12px 0}
+.browse-page .catalog-extra ul{display:grid;gap:8px}
+.browse-page .catalog-footnote{font-size:13px;max-width:900px}
+.browse-page .catalog-footnote summary{width:fit-content;cursor:pointer;min-height:44px;align-content:center}
+.browse-page .catalog-footnote p{margin-top:8px}
+.browse-page :is(a,button,input,select,summary):focus-visible{outline:2px solid #0066cc;outline-offset:4px}
+@media(max-width:640px){.browse-page .catalog-intro{padding:28px 24px}.browse-page .catalog-intro header{display:block}.browse-page .catalog-intro header p{font-size:17px;margin-top:8px}.browse-page .catalog-surface{padding-top:28px}.browse-page .catalog-heading{margin-top:32px}.browse-page .catalog-heading h2{font-size:30px}.browse-page .catalog-heading>p{margin-top:6px}.browse-page .catalog-card-body{padding:24px}.browse-page .catalog-card h3{font-size:26px}.browse-page .catalog-price{font-size:28px}.browse-page .plan-tradeoffs-compact dd{font-size:23px}}

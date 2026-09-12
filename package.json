@@ -10,7 +10,7 @@
     "dev": "node scripts/run-framework.mjs dev",
     "build": "node scripts/run-framework.mjs build",
     "start": "node scripts/start-local.mjs",
-    "test": "node --experimental-strip-types --test tests/domain.test.ts tests/discovery.test.ts tests/compare.test.ts tests/state.test.ts tests/chat.test.ts tests/pipeline.test.ts",
+    "test": "node --experimental-strip-types --test tests/domain.test.ts tests/discovery.test.ts tests/compare.test.ts tests/state.test.ts tests/chat.test.ts tests/pipeline.test.ts tests/persona.test.ts tests/browse-refinement.test.ts tests/chat-product-context.test.ts tests/catalog-expansion.test.ts",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },
