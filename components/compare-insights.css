@@ -9,3 +9,15 @@
   .comparison-page .comparison-table table[data-plan-count="3"]{width:calc(300vw - 386px);min-width:0!important;}
   .comparison-page .comparison-table td{min-width:0;}
 }
+
+.compare-filter-status{font-size:14px;color:#626267;margin:8px 0 20px;line-height:1.7}
+.compare-filter-empty{padding:28px 0;color:#626267}
+.compare-pending{margin-top:20px;border-top:1px solid #dedee2}
+.compare-pending>summary{display:flex;align-items:center;gap:10px;min-height:48px;font-size:16px;cursor:pointer;list-style:none}
+.compare-pending>summary:after{content:'+';margin-left:auto;font-size:22px}
+.compare-pending[open]>summary:after{content:'−'}
+.compare-pending>summary>span{font-variant-numeric:tabular-nums;color:#626267;font-size:14px}
+.compare-cell-detail{margin-top:4px;font-size:14px;font-weight:400}
+.compare-cell-detail>summary{color:#0066cc;cursor:pointer;min-height:44px;display:flex;align-items:center}
+.compare-cell-detail>p{font-size:14px;line-height:1.7;color:#626267;white-space:pre-line}
+.compare-pending>summary:focus-visible,.compare-cell-detail>summary:focus-visible{outline:2px solid #0066cc;outline-offset:3px}

@@ -58,3 +58,32 @@ export function parseCompareSelection(category: string, rawIds: string): string[
   if (ids.length > 3 || new Set(ids).size !== ids.length || plans.some(plan => !plan || plan.category !== category)) return null;
   return arePlansCompatible(plans as Plan[]) ? ids : null;
 }
+
+// Keep unresolved evidence separate from verified equality. With three plans,
+// a confirmed difference between two still matters when the third is unknown.
+export function comparisonRowHasDifference(item: ComparisonRow): boolean {
+  if (item.comparisonStatus === "same") return false;
+  if (item.comparisonStatus !== "insufficient") return true;
+  return item.cells.some((cell, i) => item.cells.slice(i + 1).some(other => {
+    const status = row(item.key, item.label, [cell, other]).comparisonStatus;
+    return status === "different" || status === "not_comparable";
+  }));
+}
+
+export function selectComparisonRows(rows: ComparisonRow[], differencesOnly: boolean) {
+  if (!differencesOnly) return { visible: rows, pending: [], sameCount: 0 };
+  const visible = rows.filter(comparisonRowHasDifference);
+  return {
+    visible,
+    pending: rows.filter(item => item.comparisonStatus === "insufficient" && !visible.includes(item)),
+    sameCount: rows.filter(item => item.comparisonStatus === "same").length,
+  };
+}
+
+export function comparisonDifferenceNote(item: ComparisonRow): string | null {
+  if (item.comparisonStatus === "not_comparable") return "ฐานต่างกัน";
+  if (item.comparisonStatus === "insufficient" && comparisonRowHasDifference(item)) return "บางแผนรอยืนยัน";
+  if (item.comparisonStatus !== "different") return null;
+  const withoutConditions = (cell: CoverageCell) => JSON.stringify([cell.value, cell.status, cell.unit, cell.basis, cell.inclusion]);
+  return new Set(item.cells.map(withoutConditions)).size === 1 ? "เงื่อนไขต่างกัน" : null;
+}

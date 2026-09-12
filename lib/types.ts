@@ -76,6 +76,7 @@ export type Plan = {
 };
 
 export const chatCardSchema=z.discriminatedUnion("type",[
+ z.object({type:z.literal("intake"),category:z.enum(categories),fieldKeys:z.array(z.string().min(1).max(80)).min(1).max(3)}).strict(),
  z.object({type:z.literal("plans"),planIds:z.array(z.string().min(1)).min(1).max(3),fieldKeys:z.array(z.string().min(1)).max(8)}).strict(),
  z.object({type:z.literal("comparison"),category:z.enum(categories),planIds:z.array(z.string().min(1)).min(2).max(3),fieldKeys:z.array(z.string().min(1)).max(8)}).strict(),
  z.object({type:z.literal("question"),kind:z.enum(["category","budget"]),category:z.enum(categories).nullable(),prompt:z.string().min(1).max(140)}).strict(),

@@ -1,3 +1,4 @@
+import { planVisual } from "@/lib/plan-visuals";
 import { PlanActions } from "@/components/plan-actions";
 import Link from "@/components/native-link";
 import { ArrowLeft, ChevronDown } from "lucide-react";
@@ -25,13 +26,13 @@ export default async function PlanDetailPage({ params }: { params: Promise<{ id:
     <div className="plan-detail-shell">
       <Link href={`/browse?category=${plan.category}`} prefetch={false} className="plan-detail-back"><ArrowLeft aria-hidden="true" size={17} />ดูแผนทั้งหมด</Link>
       <section className="plan-detail-hero" aria-labelledby="plan-title">
-        <div className="plan-detail-art"><img src={plan.image} alt={`ภาพประกอบ ${plan.name}`} /></div>
+        <figure className="plan-detail-art"><img src={planVisual(plan).src} alt={planVisual(plan).alt} fetchPriority="high"/><figcaption>{planVisual(plan).caption}</figcaption></figure>
         <div className="plan-detail-intro">
           <p className="plan-detail-insurer">{plan.insurer}</p>
           <h1 id="plan-title">{plan.name}</h1>
           {plan.tierLabel && !plan.name.includes(plan.tierLabel) && <p className="plan-detail-tier">{plan.tierLabel}</p>}
           <div className="plan-detail-price"><PlanPrice price={plan.price} compact className="plan-detail-price-value" /></div>
-          {plan.price.kind === "example" && plan.price.scenario && <p className="plan-detail-price-note">{plan.price.scenario}</p>}
+
           <PlanActions plan={plan} />
         </div>
       </section>
@@ -51,7 +52,7 @@ export default async function PlanDetailPage({ params }: { params: Promise<{ id:
                 <dt>{label}{basis && !label.includes(basis) && <small className="plan-detail-basis">{basis}</small>}</dt>
                 <dd className={cell.status === "known" ? "" : "plan-detail-unknown"}>
                   <span className={answer.length > 35 ? "plan-detail-long-value" : undefined}>{answer}</span>
-                  {cell.inclusion === "optional" && cell.status === "known" && <small className="plan-detail-option">ซื้อเพิ่ม</small>}
+                  {cell.inclusion === "optional" && <small className="plan-detail-option">ซื้อเพิ่ม</small>}
                 </dd>
               </div>;
             })}

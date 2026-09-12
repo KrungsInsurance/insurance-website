@@ -176,3 +176,37 @@ test("numbers without a unit cannot become a verified match", () => {
   assert.equal(compareCells([withUnit, withUnit]), "same");
   assert.equal(compareCells([withUnit, { ...withUnit, conditions: ["shared cap"] }]), "different");
 });
+
+
+import { selectComparisonRows, comparisonDifferenceNote } from "../lib/compare.ts";
+test("difference mode separates unresolved rows without calling unknowns equal", () => {
+  const comparison = buildComparison("motor", ["motor-01", "motor-02"]);
+  const filtered = selectComparisonRows(comparison.rows, true);
+  assert.equal(filtered.visible.length, 2);
+  assert.equal(filtered.sameCount, 2);
+  assert.equal(filtered.pending.length, 12);
+  assert.ok(filtered.visible.some(item => item.key === "thirdPartyBodilyPerEvent"));
+  assert.ok(filtered.pending.some(item => item.key === "premiumTHB" && item.comparisonStatus === "insufficient"));
+  assert.deepEqual(selectComparisonRows(comparison.rows, false).visible, comparison.rows);
+  assert.equal(filtered.visible.length + filtered.pending.length + filtered.sameCount, comparison.rows.length);
+});
+
+test("difference mode preserves two confirmed values when the third plan is unknown", () => {
+  const comparison = buildComparison("health", ["health-01", "health-02", "health-03"]);
+  const filtered = selectComparisonRows(comparison.rows, true);
+  const room = filtered.visible.find(item => item.key === "roomPerDay")!;
+  assert.deepEqual(room.values, [2500, 12000, null]);
+  assert.equal(room.comparisonStatus, "insufficient");
+  assert.equal(comparisonDifferenceNote(room), "บางแผนรอยืนยัน");
+  assert.ok(filtered.pending.some(item => item.key === "deductible"));
+  assert.equal(comparisonDifferenceNote(filtered.visible.find(item => item.key === "waitingDays")!), "เงื่อนไขต่างกัน");
+  assert.equal(comparisonDifferenceNote(filtered.visible.find(item => item.key === "premiumTHB")!), "ฐานต่างกัน");
+});
+
+test("an unresolved-only comparison shows no invented difference or equality", () => {
+  const pending = buildComparison("motor", ["motor-01", "motor-02"]).rows.filter(item => item.key === "premiumTHB");
+  const filtered = selectComparisonRows(pending, true);
+  assert.deepEqual(filtered.visible, []);
+  assert.equal(filtered.sameCount, 0);
+  assert.deepEqual(filtered.pending, pending);
+});

@@ -7,11 +7,12 @@ import { insuranceTerms, type InsuranceTermKey } from "@/lib/insurance-terms";
 import { categories, type Category, type ChatCard, type CoverageCell, type Plan } from "@/lib/types";
 import { shortBasis, shortCoverage, shortFieldLabel } from "@/lib/ui-copy";
 import { PlanPrice } from "./plan-price";
+import { ChatIntakeForm } from "./chat-intake-form";
 import { BudgetChoices } from "./budget-choices";
 
 export const categoryLabels:Record<Category,string>={health:"สุขภาพ",motor:"รถยนต์",life:"ชีวิต",accident:"อุบัติเหตุ",travel:"เดินทาง",property:"ทรัพย์สิน",liability:"ความรับผิด",pet:"สัตว์เลี้ยง","critical-illness":"โรคร้ายแรง",cyber:"ภัยไซเบอร์",business:"ธุรกิจ",event:"งานอีเวนต์",sports:"กีฬา"};
 export type CardAction=(intent:"select"|"interest"|"handoff"|"compare",ids:string[])=>string|void;
-type Props={card:ChatCard;selection:string[];disabled:boolean;current:boolean;onAction:CardAction;onCategory:(category:Category)=>void;onBudget:(budget:number|null,category:Category|null)=>void};
+type Props={card:ChatCard;selection:string[];disabled:boolean;current:boolean;onAction:CardAction;onCategory:(category:Category)=>void;onBudget:(budget:number|null,category:Category|null)=>void;onIntake?:(text:string)=>void};
 const featured:Partial<Record<Category,string[]>>={motor:["class","ownDamageLimit","thirdPartyProperty","thirdPartyBodilyPerPerson","deductible","repairType"],health:["annualLimit","perDiseaseLimit","roomPerDay","opdPerYear","deductible","copay"]};
 function fieldsFor(plan:Plan,keys:string[]){const fields=categoryFields[plan.category];return (keys.length?keys:featured[plan.category]??fields.slice(0,6).map(f=>f.key)).map(key=>fields.find(f=>f.key===key)).filter(f=>f!==undefined).slice(0,8);}
 
@@ -37,7 +38,7 @@ function PlanEvidence({plans}:{plans:Plan[]}) {
  </details>;
 }
 
-export function ChatCardView({card,selection,disabled,current,onAction,onCategory,onBudget}:Props){
+export function ChatCardView({card,selection,disabled,current,onAction,onCategory,onBudget,onIntake}:Props){
  const [error,setError]=useState("");
  const act:CardAction=(intent,ids)=>setError(onAction(intent,ids)||"");
  const feedback=error?<p className="chat-card-error" role="alert">{error}</p>:null;
@@ -46,6 +47,7 @@ export function ChatCardView({card,selection,disabled,current,onAction,onCategor
   return <details className="chat-result-card chat-term-card chat-fact-details"><summary>{term.title}</summary><p>{term.description}</p><p className="chat-card-caution">{term.caution}</p><a className="text-link" href={term.source} target="_blank" rel="noreferrer">แหล่งข้อมูล ↗</a></details>;
  }
  if(card.type==="question")return <section className="chat-result-card chat-question-card"><h3>{card.prompt}</h3>{card.kind==="category"?<div className="chat-choice-grid" role="group" aria-label="เลือกหมวดเพื่อเริ่มคุย">{categories.map(category=><button className="action-secondary" key={category} disabled={disabled||!current} onClick={()=>onCategory(category)}>{categoryLabels[category]}</button>)}</div>:<BudgetChoices category={card.category} disabled={disabled||!current} onChoose={amount=>onBudget(amount,card.category)}/>}{!current&&<p className="chat-card-caution">ตอบคำถามล่าสุด หรือพิมพ์ความต้องการใหม่</p>}{feedback}</section>;
+ if(card.type==="intake")return <ChatIntakeForm card={card} disabled={disabled} current={current} onSubmit={onIntake}/>;
  const plans=card.planIds.map(getPlan).filter(plan=>plan!==undefined);if(plans.length!==card.planIds.length)return <p className="chat-card-caution">ข้อมูลแผนเปลี่ยนแล้ว ลองถามอีกครั้ง</p>;
  if(card.type==="handoff")return <section className="chat-result-card"><h3>คุยกับผู้เชี่ยวชาญ</h3><p>{card.reason}</p><ul className="chat-handoff-plans">{plans.map(p=><li key={p.id}>{p.name}</li>)}</ul><button className="action-primary" disabled={disabled||!current} onClick={()=>act("handoff",card.planIds)}>ตรวจสรุป</button><p className="chat-card-caution">ตรวจและยินยอมก่อนส่งคำขอเดโม</p>{feedback}</section>;
  if(card.type==="comparison"){

@@ -493,3 +493,67 @@ test("Live repairs unsupported extraction once against original quotes without a
  const response=await productionPOST(request({messages:[{role:"user",content:"รายได้ไม่แน่นอน"}],context:{category:"health",selectedPlanIds:[],discoveryIntent:"ask"}}));
  assert.equal(response.status,200);assert.equal(extractionCalls,2);assert.equal(((await response.json()) as {mode:string}).mode,"live");
 });
+
+test("live intake groups the three motor fields in one conversational reply",async t=>{
+ configure(t);
+ let sent:Record<string,any>={}; // eslint-disable-line @typescript-eslint/no-explicit-any
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{sent=JSON.parse(options.body as string);return upstream({message:"ช่วยกรอกข้อมูลรถเท่าที่ทราบได้เลยครับ",suggestedPlanIds:[],offerHandoff:false,summaryDraft:null,intake:{fieldKeys:["motor_type","motor_year","motor_model"]}});},{responseFocus:"discovery",dialogueIntent:"information"});
+ const response=await POST(request({messages:[{role:"user",content:"กังวลเรื่องรถหายครับ"}],context:{category:"motor",selectedPlanIds:[],discoveryIntent:"ask"}}));
+ assert.equal(response.status,200);const body=await response.json() as CardReply;
+ assert.deepEqual(body.cards,[{type:"intake",category:"motor",fieldKeys:["motor_type","motor_year","motor_model"]}]);
+ assert.deepEqual(JSON.parse(sent.input[1].content).availableIntakeFields.map((f:{key:string})=>f.key),["motor_type","motor_year","motor_model"]);
+ assert.ok(sent.input[0].content.includes("ห้ามแยกถามทีละ turn"));
+ assert.ok(sent.input[0].content.includes("ไม่ถามอาชีพ"));
+ assert.equal(sent.text.format.schema.required.includes("intake"),true);
+ assert.deepEqual(sent.text.format.schema.properties.intake.anyOf[1].properties.fieldKeys.items.enum,["motor_type","motor_year","motor_model"]);
+});
+
+test("live intake preserves labeled answers and cannot ask completed fields again",async t=>{
+ configure(t);
+ const submitted="ประเภทรถ: SUV\nปีรถ: 2007";
+ let sent:Record<string,any>={}; // eslint-disable-line @typescript-eslint/no-explicit-any
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{sent=JSON.parse(options.body as string);return upstream({message:"ขอยี่ห้อหรือรุ่นรถเพิ่มได้เลยครับ",suggestedPlanIds:[],offerHandoff:false,summaryDraft:null,intake:{fieldKeys:["motor_type","motor_year","motor_model"]}});},{responseFocus:"discovery",dialogueIntent:"information"});
+ const response=await POST(request({messages:[{role:"assistant",content:"ช่วยกรอกข้อมูลรถเท่าที่ทราบได้เลยครับ"},{role:"user",content:submitted}],context:{category:"motor",selectedPlanIds:[],discoveryIntent:"ask"}}));
+ assert.equal(response.status,200);const body=await response.json() as CardReply;
+ assert.deepEqual(body.cards,[{type:"intake",category:"motor",fieldKeys:["motor_model"]}]);
+ assert.deepEqual(JSON.parse(sent.input[1].content).availableIntakeFields.map((f:{key:string})=>f.key),["motor_model"]);
+ assert.equal(sent.input.at(-1).content,submitted);
+ assert.deepEqual(sent.text.format.schema.properties.intake.anyOf[1].properties.fieldKeys.items.enum,["motor_model"]);
+});
+
+test("live intake only accepts canonical category fields and bounded question count",async t=>{
+ configure(t);
+ for(const fieldKeys of [["occupation"],["motor_model"],["health_cover","health_concern","health_cover"]]){
+  const fetch=mockChatFetch(t,async()=>upstream({message:"กรอกได้เลยครับ",suggestedPlanIds:[],offerHandoff:false,summaryDraft:null,intake:{fieldKeys}}),{responseFocus:"discovery",dialogueIntent:"information"});
+  const response=await POST(request({messages:[{role:"user",content:"สนใจสุขภาพ"}],context:{category:"health",selectedPlanIds:[],discoveryIntent:"ask"}}));
+  assert.equal(response.status,502,JSON.stringify(fieldKeys));fetch.mock.restore();
+ }
+});
+
+test("all intake templates are short and submitted answers remain ordinary conversation text",async()=>{
+ const { intakeTemplates,getIntakeFields,formatIntakeAnswer,createIntakeCard }=await import("../lib/chat-intake.ts");
+ for(const [category,template] of Object.entries(intakeTemplates)){
+  assert.ok(template.fields.length<=(category==="motor"?3:2));
+  assert.ok(!template.fields.some(field=>/อาชีพ|occupation/.test(field.key+field.label)));
+ }
+ const card={type:"intake" as const,category:"event" as const,fieldKeys:["event_type","event_concern"]};
+ assert.equal(getIntakeFields(card).length,2);
+ assert.equal(formatIntakeAnswer(card,{event_type:"งานแต่งงาน",event_concern:"ยกเลิกงาน"}),"ข้อมูลอีเวนต์ของคุณ\nประเภทงาน: งานแต่งงาน\nกังวลเรื่องไหน: ยกเลิกงาน");
+ assert.equal(formatIntakeAnswer(card,{event_type:"งานแต่งงาน"}),"ข้อมูลอีเวนต์ของคุณ\nประเภทงาน: งานแต่งงาน");
+ assert.throws(()=>formatIntakeAnswer(card,{}));assert.throws(()=>formatIntakeAnswer(card,{event_type:"x\ny"}));
+ assert.equal(createIntakeCard("event",["event_type"],[{role:"user",content:"ประเภทงาน: ยังไม่แน่ใจ"}]),null);
+ assert.deepEqual(createIntakeCard("health",["health_concern"],[{role:"user",content:"สถานที่ที่อยากดูแล\nกังวลเรื่องไหน: น้ำท่วม"}])?.fieldKeys,["health_concern"]);
+ assert.equal(createIntakeCard("health",["health_concern"],[{role:"user",content:"ความคุ้มครองที่อยากได้\nกังวลเรื่องไหน: ค่าห้อง"}]),null);
+ assert.equal(createIntakeCard("event",["event_type"],[{role:"assistant",content:"ประเภทงาน: งานแต่งงาน"}])?.fieldKeys[0],"event_type");
+});
+
+
+test("completed intake forbids invented catalog fields in the upstream schema",async t=>{
+ configure(t);
+ let sent:Record<string,any>={}; // eslint-disable-line @typescript-eslint/no-explicit-any
+ mockChatFetch(t,async(_url:unknown,options:RequestInit)=>{sent=JSON.parse(options.body as string);return upstream({message:"รับข้อมูลรถครบแล้วครับ",suggestedPlanIds:[],offerHandoff:false,summaryDraft:null,intake:null});},{responseFocus:"discovery",dialogueIntent:"information"});
+ const response=await productionPOST(request({messages:[{role:"user",content:"อยากรู้เรื่องประกันรถ ช่วยเก็บข้อมูลรถที่จำเป็นก่อน"},{role:"assistant",content:"ช่วยกรอกข้อมูลที่สะดวกได้เลยครับ"},{role:"user",content:"ข้อมูลรถของคุณ\nประเภทรถ: SUV\nปีรถ: 2007\nยี่ห้อ / รุ่น: Toyota Fortuner"}],context:{category:"motor",selectedPlanIds:[],budgetTHB:20000,goals:[]}}));
+ assert.equal(response.status,200);
+ assert.deepEqual(sent.text.format.schema.properties.intake,{type:"null"});
+ assert.deepEqual((await response.json() as CardReply).cards,[]);
+});

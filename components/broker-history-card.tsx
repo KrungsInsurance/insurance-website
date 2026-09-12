@@ -1,10 +1,12 @@
 import { formatPremium, formatPrice, formatCoverageCell } from "@/lib/display";
 import { shortBasis, shortCoverage, shortFieldLabel } from "@/lib/ui-copy";
+import { getIntakeFields, intakeTemplates } from "@/lib/chat-intake";
 import { insuranceTerms } from "@/lib/insurance-terms";
 import { categoryFields } from "@/lib/catalog";
 import type { Lead, ChatCard } from "@/lib/types";
 
 export function HistoricalCard({ card, lead }: { card: ChatCard; lead: Lead }) {
+  if (card.type === "intake") return <p className="mt-2 p-3">{intakeTemplates[card.category].title}: {getIntakeFields(card).map(field=>field.label).join(" · ")}</p>;
   if (card.type === "question") return <p className="mt-2 rounded-xl bg-[#f5f5f7] p-3">คำถาม: {card.prompt}</p>;
   if (card.type === "term") return <p className="mt-2 rounded-xl bg-[#f5f5f7] p-3">คำศัพท์: {Object.hasOwn(insuranceTerms, card.term) ? insuranceTerms[card.term as keyof typeof insuranceTerms].title : card.term} <span className="text-[#6e6e73]">· พจนานุกรมปัจจุบัน</span></p>;
   return <details className="broker-historical-card mt-2 rounded-xl border border-[#e0e0e0] p-3"><summary className="min-h-11 cursor-pointer content-center font-medium">{card.type === "comparison" ? "การ์ดเปรียบเทียบ" : card.type === "handoff" ? "การ์ดส่งต่อ" : "ข้อมูลแผน"} · ณ ตอนส่งต่อ</summary>

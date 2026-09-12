@@ -1,0 +1,88 @@
+/* Shared expression of approved proposal 02. Domain and interaction contracts are unchanged. */
+.luxury-ui{--muted-foreground:#626267;--border:#dedee2;--radius:.5rem;background:#fff}
+.luxury-ui :is(h1,h2,h3){letter-spacing:0}
+.luxury-ui :is(a,button,input,select,textarea,summary):focus-visible{outline:3px solid #0066cc;outline-offset:3px}
+.luxury-ui .site-nav{background:#fff;border-bottom:1px solid #dedee2}
+.luxury-ui .site-nav nav{max-width:1336px;min-height:76px;padding-inline:48px;justify-content:space-between;align-items:center;overflow:visible}
+.luxury-ui .site-nav .desktop-brand{display:flex;font-size:23px;font-weight:600;color:#1d1d1f;gap:8px}
+.luxury-ui .desktop-nav{gap:24px}.luxury-ui .desktop-nav a{font-size:14px;color:#1d1d1f;min-height:76px;border-bottom:2px solid transparent}
+.luxury-ui .desktop-nav a[aria-current=page]{border-color:#0066cc;font-weight:600}
+.luxury-ui :is(.action-primary,.broker-primary,.account-save){background:#0066cc;color:white;border-radius:999px;min-height:46px;line-height:1.6;font-size:14px;box-shadow:none}
+.luxury-ui :is(.action-secondary,.field){border-radius:8px;box-shadow:none}
+.plan-price-label{font-size:14px;line-height:1.6;color:#626267;font-weight:400}
+.plan-price-unit{font-size:14px;line-height:1.6;font-weight:500;white-space:nowrap}
+.plan-price-qualifier{font-size:14px;line-height:1.7;color:#626267;font-weight:400;margin-top:8px;text-align:left;overflow-wrap:anywhere}
+.luxury-ui .plan-detail-shell{max-width:1336px;padding:24px 48px 80px}
+.luxury-ui .plan-detail-demo{background:white;border-bottom:1px solid #f0f0f0;font-size:12px;padding-block:4px}
+.luxury-ui .plan-detail-back{font-size:14px;color:#626267}
+.luxury-ui .plan-detail-hero{gap:72px;margin-top:28px}.luxury-ui .plan-detail-art{border-radius:0;position:relative;background:#f5f5f7}
+.luxury-ui .plan-detail-art img{object-fit:cover;aspect-ratio:1.6;width:100%}
+.plan-detail-art figcaption{position:absolute;bottom:12px;left:12px;padding:5px 8px;background:#fffffff0;border-radius:4px;font-size:12px;color:#515154}
+.luxury-ui .plan-detail h1{font-size:clamp(32px,3.3vw,46px);line-height:1.4;text-wrap:pretty}.luxury-ui .plan-detail-tier{font-size:16px;color:#626267}
+.luxury-ui .plan-detail-price-value{font-size:40px;margin-top:5px}.luxury-ui .plan-detail-fact dt{font-size:14px}.luxury-ui .plan-detail-fact dd{font-size:30px}.luxury-ui .plan-detail-basis,.luxury-ui .plan-detail-option{font-size:14px}.luxury-ui .plan-detail-fact:first-child dd:not(.plan-detail-unknown){color:#0066cc}
+.luxury-ui .plan-detail-sections{margin-top:64px}.luxury-ui .plan-detail-more-body{font-size:16px}
+.luxury-ui .comparison-page{max-width:1336px;padding:36px 48px 88px}
+.luxury-ui .comparison-title{display:grid;grid-template-columns:1fr auto;text-align:left;gap:16px;margin-bottom:28px;align-items:center}
+.luxury-ui .comparison-title h1{font-size:42px}.luxury-ui .comparison-actions{margin:0;justify-content:flex-end}.luxury-ui .compare-category{justify-content:flex-start;margin-top:0;font-size:14px}
+.luxury-ui .compare-slots{text-align:left;gap:32px}.luxury-ui .compare-slots article{padding-right:32px;border-right:1px solid #dedee2}.luxury-ui .compare-slots article:last-child{padding-right:0;border:0}
+.luxury-ui .compare-slots img{height:132px;object-fit:cover;border-radius:3px}.luxury-ui .compare-slots h2{font-size:23px;line-height:1.5;min-height:70px;margin-top:12px}
+.luxury-ui .plan-picker-trigger{font-size:14px;border:1px solid #dedee2;border-radius:8px;background:white}.luxury-ui .compare-slots .text-link{font-size:14px;min-height:44px}
+.luxury-ui .compare-plan-price{margin-top:20px}.luxury-ui .compare-price-value{font-size:32px;font-weight:600;line-height:1.5}
+.luxury-ui .compare-insights{background:#fff;border-radius:0;border-block:1px solid #dedee2;padding:28px 0;margin-top:36px}.luxury-ui .compare-insight-grid article{background:#fff;border-radius:0;border:0;border-left:1px solid #dedee2}.luxury-ui .compare-insight-grid article:first-child{border-left:0}
+.luxury-ui .compare-insights-empty{background:#fff;border:0;padding:0}.luxury-ui .comparison-table th{background:#fff}.luxury-ui .comparison-table tbody th{background:#fafafc}.luxury-ui .compare-cell-qualifier{font-size:14px}.luxury-ui .compare-cell-value{font-size:24px}.luxury-ui .compare-section-heading h2{font-size:30px}
+.luxury-ui .comparison-table :is(th,td){border-color:#dedee2}.luxury-ui .comparison-table thead th{font-size:16px}
+.luxury-ui .draft-hero{height:540px;min-height:0;max-width:1240px;margin:32px auto;background:#f5f5f7}
+.luxury-ui .draft-hero h1{left:40px;top:40px;font-size:52px}.luxury-ui .draft-hero .hero-action{left:40px;background:#0066cc;color:white;box-shadow:none}
+.luxury-ui .home-promotions{background:#fff;border-top:1px solid #dedee2}.luxury-ui .promotion-card{border-radius:0;border:0;border-right:1px solid #dedee2}.luxury-ui .promotion-card:last-child{border-right:0}.luxury-ui .promotion-body{padding:24px 24px 0 0}.luxury-ui .promotion-image{object-fit:contain}.luxury-ui .home-learning{border-top:1px solid #dedee2}
+.luxury-ui .policies-page{max-width:1336px;padding-inline:48px}.luxury-ui .policy-art{border-radius:3px}.luxury-ui .policy-info{border-bottom:1px solid #dedee2;padding-block:20px}.luxury-ui .policy-heading{background:#fff}.luxury-ui .policy-date{background:white;border-radius:0}.luxury-ui .policy-info dl{border-radius:0;background:white;border-top:1px solid #dedee2}
+.luxury-ui .account-page{background:white}.luxury-ui .account-container{max-width:1240px}.luxury-ui .account-section{border-radius:0;box-shadow:none;background:white}.luxury-ui .account-heading h1{font-size:42px}.luxury-ui .account-request{border-radius:0;box-shadow:none}
+.luxury-ui .broker-workspace{background:#fff}.luxury-ui :is(.broker-requests,.broker-panel,.broker-candidate){border-radius:0;box-shadow:none}.luxury-ui .broker-metric{border-radius:0;border-width:0 0 1px;min-height:100px}.luxury-ui .broker-metric[aria-pressed=true]{border-color:#0066cc;background:#fff}.luxury-ui :is(.broker-status-contacting,.broker-status-follow_up){background:#f5f5f7;color:#515154}.luxury-ui :is(.broker-dot-contacting,.broker-dot-follow_up){background:#626267}.luxury-ui .broker-request:hover{background:#fafafc}
+.luxury-ui .chat-panel.chat-workspace{background:white;border:1px solid #dedee2;border-radius:16px;box-shadow:0 12px 36px #00000012}.luxury-ui .chat-workspace .chat-header{background:#fff;box-shadow:none}.luxury-ui .chat-workspace .chat-bubble{background:#f5f5f7;border:0;border-radius:16px;box-shadow:none}.luxury-ui .chat-workspace .chat-bubble.is-user{background:#1d1d1f;color:#fff}.luxury-ui .chat-workspace .chat-bubble.is-user small{color:#ddd}.luxury-ui .chat-workspace .chat-composer,.luxury-ui .chat-composer form{background:#fff;box-shadow:none}.luxury-ui .chat-result-card{border-radius:8px}.luxury-ui .chat-composer form button{background:#0066cc}
+.luxury-ui .discovery-onboarding{background:#fff}.luxury-ui .discovery-character-preview{background:#f5f5f7}.luxury-ui .discovery-character-form{background:white;box-shadow:none}
+@media(min-width:901px) and (max-height:800px){.luxury-ui .comparison-page{padding-top:24px}.luxury-ui .comparison-title{margin-bottom:20px}.luxury-ui .compare-slots img{height:96px}.luxury-ui .compare-slots h2{font-size:21px;min-height:64px}.luxury-ui .compare-plan-price{margin-top:12px}.luxury-ui .compare-price-value{font-size:28px}}
+@media(max-width:1100px){.luxury-ui .desktop-nav{gap:16px}.luxury-ui .site-nav nav{padding-inline:28px}.luxury-ui .site-nav .desktop-brand{font-size:20px}.luxury-ui .desktop-nav a{font-size:14px}.luxury-ui .plan-detail-hero{gap:36px}}
+@media(max-width:900px){.luxury-ui .desktop-nav{gap:12px}.luxury-ui .site-nav .desktop-brand{display:none}.luxury-ui .site-nav nav{justify-content:center}.luxury-ui .plan-detail-shell,.luxury-ui .comparison-page,.luxury-ui .policies-page{padding-inline:28px}.luxury-ui .compare-slots{gap:18px}.luxury-ui .compare-slots article{padding-right:18px}.luxury-ui .compare-slots h2{font-size:19px}.luxury-ui .compare-price-value{font-size:27px}}
+@media(max-width:640px){.luxury-ui .site-nav nav{padding-inline:20px;min-height:60px;justify-content:space-between}.luxury-ui .site-nav .desktop-brand{display:none}.luxury-ui .site-nav .mobile-brand{font-size:20px}.luxury-ui .mobile-nav>div{top:60px;background:#fff}.luxury-ui .mobile-nav summary{min-height:60px}.luxury-ui .plan-detail-shell,.luxury-ui .comparison-page,.luxury-ui .policies-page{padding-inline:20px}.luxury-ui .plan-detail-hero{gap:24px;margin-top:16px}.luxury-ui .plan-detail-art img{aspect-ratio:1.75}.luxury-ui .plan-detail h1{font-size:32px}.luxury-ui .plan-detail-price-value{font-size:36px}.luxury-ui .plan-detail-intro .flex{flex-direction:column;align-items:stretch}.luxury-ui .plan-detail-intro :is(.action-primary,.action-secondary){width:100%;white-space:nowrap}.luxury-ui .plan-detail-sections{margin-top:48px}.luxury-ui .comparison-title{display:block}.luxury-ui .comparison-title h1{font-size:32px}.luxury-ui .comparison-actions{justify-content:flex-start;margin-top:12px}.luxury-ui .compare-category{margin-top:12px}.luxury-ui .compare-slots{display:grid;grid-auto-flow:column;grid-auto-columns:82%;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:18px;gap:20px}.luxury-ui .compare-slots article{scroll-snap-align:start;padding-right:20px}.luxury-ui .compare-slots img{height:136px}.luxury-ui .compare-slots h2{font-size:22px;min-height:0}.luxury-ui .compare-price-value{font-size:32px}.luxury-ui .compare-insight-grid article{border-left:0;border-top:1px solid #dedee2}.luxury-ui .compare-insight-grid article:first-child{border-top:0}.luxury-ui .draft-hero{margin:20px;max-height:none;height:470px}.luxury-ui .draft-hero h1{left:24px;top:24px;font-size:36px}.luxury-ui .draft-hero .hero-action{left:24px}.luxury-ui .promotion-card{border-right:0;border-bottom:1px solid #dedee2;padding-bottom:24px}.luxury-ui .promotion-body{padding-right:0}.luxury-ui .account-heading h1{font-size:32px}.luxury-ui .chat-panel.chat-workspace{border-radius:0}}
+.luxury-ui .draft-hero .hero-action{transform:none;bottom:32px}
+.luxury-ui .browse-page .catalog-selection{position:fixed;left:50%;transform:translateX(-50%);width:calc(100% - 96px);max-width:1240px;bottom:16px;margin:0}
+.luxury-ui .browse-page .catalog-surface{padding-bottom:160px}
+@media(max-width:640px){.luxury-ui .browse-page .catalog-selection{width:calc(100% - 24px);bottom:8px}.luxury-ui .browse-page .catalog-selection p>span:first-child{display:none}.luxury-ui .browse-page .catalog-surface{padding-bottom:180px}}
+.luxury-ui .account-section{border:0;border-top:1px solid #dedee2;padding:28px 0}
+.luxury-ui .account-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.luxury-ui .account-fields :is(input,select){border-radius:8px;min-width:0;width:100%}
+@media(max-width:800px){.luxury-ui .account-fields{grid-template-columns:1fr}}
+.luxury-ui .policies-page.policies-readable{max-width:1336px;padding-inline:48px}
+.luxury-ui .policies-readable .policy-card{background:#fff;border-radius:0;overflow:visible;border-bottom:1px solid #dedee2}
+.luxury-ui .policies-readable .policy-art{border-radius:3px;overflow:hidden}.luxury-ui .policies-readable .policy-content{background:#fff;padding:24px 0}
+.luxury-ui .policies-readable :is(.policy-heading,.policy-date,.policy-info){background:#fff;border-radius:0}
+.luxury-ui .policies-readable .policy-art img{object-fit:cover}
+@media(max-width:640px){.luxury-ui .policies-page.policies-readable{padding-inline:20px}}
+.luxury-ui .broker-workspace .broker-page-heading{margin:20px 0 28px}.luxury-ui .broker-workspace .broker-page-heading h1{font-size:42px}
+.luxury-ui .broker-workspace .broker-metrics{margin-bottom:28px}.luxury-ui .broker-workspace .broker-metric{min-height:100px;border-radius:0;border-width:0 0 1px;box-shadow:none}
+.luxury-ui .broker-workspace :is(.broker-requests,.broker-panel,.broker-candidate){border-radius:0;box-shadow:none}
+.luxury-ui .broker-workspace .broker-requests{border-inline:0}.luxury-ui .broker-workspace .broker-list-heading,.luxury-ui .broker-workspace .broker-filter-bar{padding-inline:0}
+@media(max-width:640px){.luxury-ui .broker-workspace .broker-page-heading h1{font-size:32px}}
+.luxury-ui:has(.catalog-selection) .chat-launch{bottom:124px}
+@media(max-width:640px){
+  .luxury-ui .comparison-page .compare-slots article:nth-child(n){grid-column:auto;grid-row:auto}
+  .luxury-ui .plan-detail-intro>.mt-6{padding-right:72px}
+  .luxury-ui:has(.catalog-selection) .chat-launch{bottom:160px}
+}
+.luxury-ui .chat-full-page,.luxury-ui .chat-workspace .chat-scroll{background:#fff}
+.luxury-ui .chat-workspace .chat-bubble:not(.is-user){background:#f5f5f7}
+@media(max-width:700px){.luxury-ui .comparison-page .comparison-table :is(th,thead th,tbody th){font-size:14px}}
+/* Keep the fixed tray centered while other catalog results animate in. */
+.luxury-ui .browse-page .catalog-selection{animation:none}
+
+/* A quiet life photograph and one centered, prominent entry point. */
+.luxury-ui .home-page .draft-hero{background:#f5f3ef}
+.luxury-ui .home-page .draft-hero img{object-position:center}
+.luxury-ui .home-page .draft-hero .hero-action{left:50%;bottom:32px;transform:translateX(-50%);display:inline-flex;align-items:center;justify-content:center;min-width:280px;min-height:68px;padding:18px 36px;background:#1d1d1f;color:#fff;font-size:22px;font-weight:600;line-height:1.4;box-shadow:none}
+.luxury-ui .home-page .draft-hero .hero-action:hover{background:#000}
+.luxury-ui .home-page .draft-hero .hero-action:focus-visible{outline:3px solid #0066cc;outline-offset:5px}
+@media(max-width:640px){
+ .luxury-ui .home-page .draft-hero{height:550px;min-height:550px}
+ .luxury-ui .home-page .draft-hero img{position:absolute;left:0;bottom:0;width:100%;height:340px;object-fit:cover;object-position:right center}
+ .luxury-ui .home-page .draft-hero h1{top:24px;left:24px;font-size:36px}
+ .luxury-ui .home-page .draft-hero .hero-action{bottom:24px;min-width:0;width:calc(100% - 48px);min-height:64px;padding:16px 20px;font-size:20px}
+}

@@ -10,7 +10,7 @@ export function PlanTradeoffs({plan, compact = false}:{plan:Plan; compact?:boole
       return cell.status === "known" && cell.inclusion === "included" && cell.value !== false && cell.value !== 0;
     });
     const priorityKeys: Partial<Record<Plan["category"], string[]>> = {
-      health: ["annualLimit", "perAdmissionLimit", "roomPerDay"],
+      health: ["annualLimit", "perDiseaseLimit", "perAdmissionLimit", "roomPerDay"],
       motor: ["class", "ownDamageLimit", "medicalPerPerson"],
       life: ["coverageYears", "coverageUntilAge", "paymentYears", "lifeType"],
       accident: ["medicalPerAccident", "deathBenefit", "hospitalAdmissionBenefit"],

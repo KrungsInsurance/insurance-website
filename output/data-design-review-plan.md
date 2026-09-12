@@ -26,13 +26,13 @@ Data research owner: data_evidence_team. Design artifact owner: luxury_design_te
 | U4 Usability | Desktop/mobile, keyboard, focus, controls | No page overflow, ≥44px actions, all table columns readable |
 | U5 Integrity | Facts and flow represented honestly | No invented price, rating, trust claim, eligibility or API behavior |
 | U6 Independent review | Findings and revision ledger | Blocking findings fixed and checked again |
-| U7 User approval | Explicit reply approving shown proposal/version | PENDING — only the user can pass this gate |
+| U7 User approval | Explicit reply approving shown proposal/version | PASSED — user approved proposal 02: “ok ใช้เลย” |
 
 ## Iteration rule
 
 Audit → research/design → evaluate → fix → evaluate again. Track all open findings. Passing schema or an automated matrix does not prove source accuracy or user approval. A source that does not publish an individualized limit/premium cannot justify a guessed value; keep the unknown visible and record what evidence/quote is needed.
 
-Current stage: public-source research round and revised proposal complete; unresolved evidence and user approval remain open. Main visual rollout: NOT APPROVED. External plan sync: pending (Miro tool unavailable).
+Current stage: public-source research round complete; unresolved evidence remains open. Proposal 02 explicitly approved and main visual rollout completed. External plan sync: pending (Miro tool unavailable).
 
 ### Design scoring anchors
 
@@ -45,8 +45,12 @@ Data gates are binary per evidence item, not an averaged score. A high total can
 
 - Proposal 01: user liked the white/black direction and requested more imagery plus a third accent color to highlight and direct focus.
 - Proposal 02: contextual product photography, matching detail imagery, and #0066cc on selected controls, key actions and source-backed main benefits. White/black remains dominant.
-- User gate: DIRECTION ACCEPTED WITH REVISIONS; FINAL VERSION 02 APPROVAL PENDING. The initial positive response is not recorded as acceptance of an unseen revision.
+- User gate: PASSED for version 02 on explicit reply “ok ใช้เลย”.
 - Data integration: 115 reviewed field changes, metadata/source corrections and Chubb event product;83 entries / 79 products / 891 cells. Exhaustive 95,284 comparison combinations pass runtime contract checks. Data completeness remains OPEN; see output/data-audit/README.md and current-matrix.csv.
 
 - Final validation: 152 tests, TypeScript, lint (0 errors / 7 existing warnings), production build and local API checks pass. All 405 original + 13 appended gaps researched; 374 unknown / 4 conflicting cells remain explicit. Independent review matches all 115 applied facts.
-- Proposal 02: independent score 91.5/100; desktop 1440×1000, mobile 390×844 and compact desktop 1280×720 checked. User approval is still pending.
+- Proposal 02: independent score 91.5/100; desktop 1440×1000, mobile 390×844 and compact desktop 1280×720 checked. User subsequently approved this version.
+
+## Approved rollout — 12 September 2026
+
+User explicitly approved proposal 02: “ok ใช้เลย”. U7 PASSED. Root completed the approved Browse, Detail and Compare compositions and shared white/black/blue styling across all nine pages. Local production build and independent responsive/flow QA pass. API, memory, persona, consent, filters and canonical data contracts remain intact. Evidence: output/luxury-rollout-verification.md.

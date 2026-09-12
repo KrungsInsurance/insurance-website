@@ -8,10 +8,10 @@
   --primary: #0066cc;
   --primary-focus: #0071e3;
   --secondary: #f5f5f7;
-  --muted-foreground: #6e6e73;
-  --border: #e0e0e0;
+  --muted-foreground: #626267;
+  --border: #dedee2;
   --ring: #0071e3;
-  --radius: 1rem;
+  --radius: 0.5rem;
 }
 
 @theme inline {

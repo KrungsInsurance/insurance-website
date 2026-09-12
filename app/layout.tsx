@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./motion.css";
+import "./luxury.css";
 import { DemoProvider } from "@/components/demo-provider";
 import { SiteNav } from "@/components/site-nav";
 import { ChatWidget } from "@/components/chat-widget";
@@ -25,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th">
-      <body className="antialiased"><DemoProvider><SiteNav />{children}<ChatWidget /></DemoProvider></body>
+      <body className="antialiased luxury-ui"><DemoProvider><SiteNav />{children}<ChatWidget /></DemoProvider></body>
     </html>
   );
 }

@@ -1,3 +1,4 @@
+import { PlanPrice } from "./plan-price";
 import type { CoverageCell, Plan } from "@/lib/types";
 import type { CompareInterest, CompareBudget } from "@/lib/compare-personalization";
 import { compactPrice, planInterestReasons } from "@/lib/compare-personalization";
@@ -5,10 +6,10 @@ import { formatCoverageCell, formatPrice } from "@/lib/display";
 import { categoryFields } from "@/lib/catalog";
 import { shortCoverage, shortFieldLabel, shortBasis } from "@/lib/ui-copy";
 
-export function CompareCell({plan,cell,fieldKey,label}:{plan:Plan;cell:CoverageCell;fieldKey:string;label:string}){
+export function CompareCell({plan,cell,fieldKey,label,showDetails=false}:{plan:Plan;cell:CoverageCell;fieldKey:string;label:string;showDetails?:boolean}){
  const value=fieldKey==="premiumTHB"?compactPrice(plan.price):shortCoverage(cell);
- const qualifier=fieldKey!=="premiumTHB"&&cell.status==="known"?[cell.inclusion==="optional"?"ซื้อเพิ่ม":cell.inclusion==="unknown"?"รอยืนยันสิทธิ":null,shortBasis(cell)].filter(Boolean).join(" · "):null;
- return <div className="compare-cell"><div className={`compare-cell-value ${cell.status==="unknown"?"is-unknown":""}`} aria-label={`${label}: ${value}`}>{value}</div>{qualifier&&<small className="compare-cell-qualifier">{qualifier}</small>}</div>;
+ const qualifier=fieldKey!=="premiumTHB"?[cell.inclusion==="optional"?"ซื้อเพิ่ม":cell.inclusion==="unknown"?"รอยืนยันสิทธิ":null,shortBasis(cell)].filter(Boolean).join(" · "):null;
+ return <div className="compare-cell"><div className={`compare-cell-value ${cell.status==="unknown"?"is-unknown":""}`} aria-label={`${label}: ${value}`}>{value}</div>{qualifier&&<small className="compare-cell-qualifier">{qualifier}</small>}{(showDetails||value==="ตามเงื่อนไข")&&<details className="compare-cell-detail"><summary>ดูเงื่อนไข</summary><p>{formatCoverageCell(cell)}</p></details>}</div>;
 }
 export function CompareInsights({plans,interests,budget}:{plans:Plan[];interests:CompareInterest[];budget?:CompareBudget}){
  return <section className="compare-insights" aria-labelledby="compare-insights-title">
@@ -21,7 +22,7 @@ export function CompareInsights({plans,interests,budget}:{plans:Plan[];interests
 }
 
 export function ComparePlanPrice({plan}:{plan:Plan}){
- return <div className="compare-plan-price"><p>{compactPrice(plan.price)}</p></div>;
+ return <div className="compare-plan-price"><PlanPrice price={plan.price} compact className="compare-price-value"/></div>;
 }
 
 export function CompareConditions({plans}:{plans:Plan[]}){

@@ -1,3 +1,4 @@
+import { getIntakeFields } from "./chat-intake.ts";
 import { CHAT_HISTORY_LIMIT, CHAT_TEXT_LIMIT, CHAT_BODY_LIMIT } from "./chat-memory.ts";
 import { discoveryPersonaSchema, priorityTopics, selectPersonaPlans, type DiscoveryPersona } from "./discovery-persona.ts";
 import { assistantOverviewSchema, buildAssistantOverview, type AssistantOverview } from "./assistant-overview.ts";
@@ -36,6 +37,7 @@ const snapshotPlanSchema=z.object({id:historicalId,comparisonGroup:z.string().ma
 function validStoredCard(card:ChatCard){
  if(card.type==="term")return Object.hasOwn(insuranceTerms,card.term);
  if(card.type==="question")return !/https?:|www\./i.test(card.prompt);
+ if(card.type==="intake"){try{getIntakeFields(card);return true;}catch{return false;}}
  const plans=card.planIds.map(getPlan);if(plans.some(p=>!p)||new Set(card.planIds).size!==card.planIds.length||new Set(plans.map(p=>p?.category)).size!==1)return false;
  if("fieldKeys" in card&&card.fieldKeys.some(key=>!categoryFields[plans[0]!.category].some(field=>field.key===key)))return false;
  if(card.type==="comparison"){try{buildComparison(card.category,card.planIds);}catch{return false;}}
@@ -46,6 +48,7 @@ const messagesSchema=z.array(z.object({role:z.enum(["user","assistant"]),content
 const historicalMessagesSchema=z.array(z.object({role:z.enum(["user","assistant"]),content:z.string().max(2000),mode:z.enum(["live","mock"]).optional(),cards:chatCardsSchema.catch([]).optional()}).transform(message=>({...message,cards:message.role==="assistant"?message.cards?.filter(card=>{
  if(card.type==="term")return /^[a-z_]{1,80}$/.test(card.term);
  if(card.type==="question")return !/https?:|www\./i.test(card.prompt);
+ if(card.type==="intake"){try{getIntakeFields(card);return true;}catch{return false;}}
  return new Set(card.planIds).size===card.planIds.length&&card.planIds.every(id=>historicalId.safeParse(id).success)&&(!("fieldKeys"in card)||card.fieldKeys.every(key=>/^[a-zA-Z][a-zA-Z0-9]{0,79}$/.test(key)))&&(card.type!=="handoff"||!/https?:|www\./i.test(card.reason));
 }):undefined}))).max(CHAT_HISTORY_LIMIT);
 const summarySchema=z.object({overview:assistantOverviewSchema.optional(),currentCoverage:z.array(z.string().max(200)).max(5).optional(),category:z.enum(categories),budgetTHB:z.number().finite().nonnegative().nullable(),needs:z.array(z.string().max(200)).max(5),questions:z.array(z.string().max(200)).max(5),comparedPlanIds:z.array(historicalId).max(3),interestedPlanIds:z.array(historicalId).max(3),generatedAt:z.string().datetime({offset:true}),sourceMode:z.enum(["live","mock"]),editedByUser:z.boolean()});

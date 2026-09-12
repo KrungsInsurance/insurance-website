@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { AlertDialog } from "radix-ui";
 import type { Policy } from "@/lib/types";
+import { planVisual } from "@/lib/plan-visuals";
 import Link from "@/components/native-link";
 import { getPlan } from "@/lib/catalog";
 import { useDemo } from "@/components/demo-provider";
@@ -54,7 +55,7 @@ export default function MyInsurancePage() {
           const [label, tone] = status(policy.renewsOn, life);
           return (
             <article key={policy.id} className="policy-card">
-              {plan && <div className="policy-art"><img src={plan.image} alt="" /></div>}
+              {plan && <div className="policy-art"><img src={planVisual(plan).src} alt={planVisual(plan).alt} /></div>}
               <div className="policy-content">
                 <div className="policy-heading">
                   <p>{plan?.insurer}</p>

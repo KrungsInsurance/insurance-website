@@ -133,3 +133,12 @@
 .chat-analysis>summary{min-height:44px;align-content:center;cursor:pointer;color:#515154}
 .chat-persona-context>div{min-width:0;overflow-wrap:anywhere}
 @media(max-width:600px){.chat-plans-card>article>dl>div{gap:4px}.chat-result-card .chat-price{font-size:28px}.chat-table-scroll .chat-price{font-size:22px}.chat-comparison-card>.chat-plan-evidence{margin-inline:20px}.chat-workspace .chat-mode-line{flex-direction:row;flex-wrap:wrap;gap:4px 12px}.chat-fact strong{font-size:24px}}
+
+.chat-workspace .chat-intake{max-width:560px;margin-top:12px;padding:22px;border:1px solid #dedee2;border-radius:16px;background:#fff}
+.chat-workspace .chat-intake h3{font-size:20px;line-height:1.5;font-weight:600;margin:0 0 18px}
+.chat-intake-fields{display:grid;gap:16px}
+.chat-intake-fields label{display:grid;gap:6px;min-width:0;font-size:16px}
+.chat-intake-fields .field{width:100%;min-width:0;font-size:16px;min-height:48px}
+.chat-intake>.action-primary{margin-top:20px;min-height:48px;background:#1d1d1f;color:white}
+.chat-intake-history{margin-top:8px;font-size:14px;color:#626267}
+@media(max-width:600px){.chat-workspace .chat-intake{padding:18px;max-width:100%}}
