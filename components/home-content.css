@@ -22,3 +22,18 @@
 .home-page .purchase-steps h3{font-size:26px}
 .home-page .purchase-number{font-size:36px;color:#86868b}
 @media(max-width:640px){.home-page .promotion-body .promotion-value{font-size:56px}.home-page .purchase-steps h3{font-size:23px}.home-page .promotion-body h3{font-size:24px}}
+
+/* One card format, with shared-application offers first in a swipeable rail. */
+.home-page .home-promotions .section-heading{position:relative;padding-right:120px}
+.home-page .promotion-controls{display:flex;gap:8px;position:absolute;right:0;bottom:0}
+.home-page .promotion-controls button{width:44px;height:44px;border:1px solid #d2d2d7;border-radius:50%;background:#fff;color:#1d1d1f;font-size:24px;cursor:pointer}
+.home-page .promotion-grid{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:calc((100% - 48px)/3);overflow-x:auto;scroll-snap-type:x proximity;gap:24px;padding-bottom:20px;align-items:stretch;overscroll-behavior-x:contain}
+.home-page .home-promotions .promotion-card{position:relative;min-width:0;scroll-snap-align:start;border:1px solid #dedee2;border-radius:18px;padding:0;display:flex;flex-direction:column}
+.home-page .home-promotions .promotion-body{padding:24px;flex:1}
+.home-page .home-promotions .promotion-image{height:180px;flex-shrink:0}
+.home-page .promotion-body .promotion-kind{font-size:13px;color:#0066cc;margin-top:0}
+.home-page .promotion-body .promotion-offer{font-size:20px;font-weight:500;color:#1d1d1f;margin-top:8px}
+.home-page .promotion-demo{display:inline-block;font-size:12px;color:#515154;background:#f5f5f7;padding:4px 10px;border-radius:6px;margin-top:12px}
+.home-page .promotion-grid:focus-visible,.home-page .promotion-controls button:focus-visible{outline:2px solid #0066cc;outline-offset:3px}
+@media(max-width:1024px){.home-page .promotion-grid{grid-auto-columns:calc((100% - 24px)/2)}}
+@media(max-width:640px){.home-page .promotion-grid{grid-auto-columns:86%}.home-page .home-promotions .section-heading{padding-right:0}.home-page .promotion-controls{position:static;justify-content:flex-end;margin-top:16px}}
